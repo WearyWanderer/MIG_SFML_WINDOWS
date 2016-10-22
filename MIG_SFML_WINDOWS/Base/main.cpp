@@ -12,6 +12,7 @@ int main()
 
 	while (app.isRunning())
 	{
+		//Consume network queued messages and update the game simulation from them
 		app.Update();
 
 		float newTime = clock.getElapsedTime().asSeconds();
@@ -21,6 +22,7 @@ int main()
 		while (frameTime > 0.0f)
 		{
 			float deltaTime = std::min(frameTime, dt);
+
 			//do anything that should be controlled by time instead of per frame here
 			app.Simulate(deltaTime);
 

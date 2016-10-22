@@ -1,13 +1,18 @@
 #pragma once
 
 #include "stdafx.h"
+#include <stdio.h>      /* printf, scanf, puts, NULL */
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
 
 #ifdef _WIN32
 	#include "../Graphics/TextureLibrary.h"
 	#include "../Entity.h"
+	#include "../Graphics/BackgroundRenderer.h"
 #elif __APPLE__
 	#include "..\Graphics\TextureLibrary.h"
 	#include "..\Entity.h"
+	#include "..\Graphics\BackgroundRenderer.h"
 #endif
 
 
@@ -33,7 +38,7 @@ protected:
 
 #pragma region Graphics/Rendering Components
 	TextureLibrary m_bgTextures;
-	
+	BackgroundRenderer m_bgRenderer;
 #pragma endregion
 };
 
