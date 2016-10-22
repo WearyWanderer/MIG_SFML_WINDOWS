@@ -77,3 +77,8 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+*.suo
+Debug/MIG_SFML_WINDOWS.ilk
+*.pdb
+*.sln
+*.tlog

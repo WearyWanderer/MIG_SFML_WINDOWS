@@ -1,38 +1,18 @@
 #include "stdafx.h"
-
-#include <iostream>
-
-#include "../Graphics/TextureLibrary.h"
-#include "../Entity.h"
+#include "Application.h"
 
 int main()
 {
+	Application app;
+	app.Init();
 
-#pragma region Startup (window, clock etc.)
-	sf::RenderWindow window(sf::VideoMode(700, 700), "SFML works!");
 	sf::Clock clock;
 	float currentTime = clock.getElapsedTime().asSeconds();
 	float dt = 1 / 60.0f, t = 0.0f;
-#pragma endregion
 
-	TextureLibrary bgTextures;
-	bgTextures.AddTexture("Art/cloud1.png");
-	bgTextures.AddTexture("Art/cloud4.png");
-	bgTextures.AddTexture("Art/cloud6.png");
-
-	sf::Texture* texture = bgTextures.getTexture(1);
-
-	Entity testCloud(10.0f, 10.0f, texture);
-	
-
-	while (window.isOpen())
+	while (app.isRunning())
 	{
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-				window.close();
-		}
+		app.Update();
 
 		float newTime = clock.getElapsedTime().asSeconds();
 		float frameTime = newTime - currentTime;
@@ -42,16 +22,13 @@ int main()
 		{
 			float deltaTime = std::min(frameTime, dt);
 			//do anything that should be controlled by time instead of per frame here
+			app.Simulate(deltaTime);
+
 			frameTime -= deltaTime;
 			t += deltaTime;
 		}
 
-
-#pragma region Rendering
-		window.clear(sf::Color(142, 185, 255, 255));
-		window.draw(testCloud.m_sprite);
-		window.display();
-#pragma endregion
+		app.Render();
 	}
 
 	return 0;
