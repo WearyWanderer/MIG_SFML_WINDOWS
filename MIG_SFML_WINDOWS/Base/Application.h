@@ -7,12 +7,14 @@
 
 #ifdef _WIN32
 	#include "../Graphics/TextureLibrary.h"
-	#include "../Entity.h"
+	#include "../State/AnimatedEntity.h"
 	#include "../Graphics/BackgroundRenderer.h"
+	#include "../State/World.h"
 #elif __APPLE__
 	#include "..\Graphics\TextureLibrary.h"
-	#include "..\Entity.h"
+	#include "..\State\Entity.h"
 	#include "..\Graphics\BackgroundRenderer.h"
+	#include "..\State\World.h"
 #endif
 
 
@@ -38,7 +40,9 @@ protected:
 
 #pragma region Graphics/Rendering Components
 	TextureLibrary m_bgTextures;
-	BackgroundRenderer m_bgRenderer;
+	TextureLibrary m_playerTextures;
+	BackgroundRenderer m_bgRenderer; //could put both these into a BaseLoopClass vector and just loop in the init simulate and renders
+	World m_mainWorld;
 #pragma endregion
 };
 

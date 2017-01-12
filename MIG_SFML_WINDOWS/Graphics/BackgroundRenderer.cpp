@@ -2,7 +2,7 @@
 #include "GraphicsUtilities.h"
 #include <iostream>
 
-BackgroundRenderer::BackgroundRenderer(TextureLibrary* bgTextures, sf::RenderWindow* window)
+BackgroundRenderer::BackgroundRenderer(TextureLibrary* bgTextures, sf::RenderWindow* window) : BaseLoopClass(window)
 {
 	m_window = window;
 
@@ -13,7 +13,7 @@ BackgroundRenderer::BackgroundRenderer(TextureLibrary* bgTextures, sf::RenderWin
 
 	for (int i = 0; i < 10; ++i)
 	{
-		m_clouds[i] = BackgroundEntity(50 * i, 50 * i, bgTextures->getTexture(1), 2, static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 5)) + 5.0f, cloudOptions);
+		m_clouds[i] = BackgroundEntity(50 * i, 50 * i, bgTextures->getTexture(1), 2, static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 5)) + 15.0f, cloudOptions);
 		gfx::ResetOriginToCenter(&m_clouds[i].m_sprite);
 		m_clouds[i].m_sprite.setScale(0.5f, 0.5f);
 	}

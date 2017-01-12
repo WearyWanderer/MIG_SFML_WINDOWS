@@ -2,10 +2,10 @@
 
 #ifdef _WIN32
 #include "../Base/stdafx.h"
-#include "../Entity.h"
+#include "../State/Entity.h"
 #elif __APPLE__
 #include "..\Base\stdafx.h"
-#include "..\Entity.h"
+#include "..\State\Entity.h"
 #endif
 
 //Define our bit flags

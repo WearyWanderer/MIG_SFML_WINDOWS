@@ -1,9 +1,9 @@
 #pragma once
 
 #ifdef _WIN32
-#include "Base/stdafx.h"
+#include "../Base/stdafx.h"
 #elif __APPLE__
-#include "Base\stdafx.h"
+#include "../Base\stdafx.h"
 #endif
 
 class Entity
