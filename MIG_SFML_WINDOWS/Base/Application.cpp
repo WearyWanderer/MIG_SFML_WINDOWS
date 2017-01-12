@@ -17,7 +17,7 @@ void Application::Init()
 	m_bgTextures.AddTexture("Art/cloud4.png");
 	m_bgTextures.AddTexture("Art/cloud6.png");
 
-	m_playerTextures.AddSpritesheetTexture("Art/Players/p1_walk.png", sf::Rect<int>(0,0,67,92));
+	m_playerTextures.AddSpritesheetTexture("Art/Players/p1_walk.png", sf::Rect<int>(0,0,72,96));
 
 	m_bgRenderer = BackgroundRenderer(&m_bgTextures, &m_window);
 	m_mainWorld = World(&m_playerTextures, &m_window);

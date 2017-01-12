@@ -6,7 +6,7 @@ World::World(TextureLibrary* worldTextures, sf::RenderWindow* window) : BaseLoop
 {
 	m_window = window;
 
-	AddPlayer(0, 0, 0, worldTextures->getAnimatedTexture(0));
+	AddPlayer(100, 200, 0, worldTextures->getAnimatedTexture(0));
 }
 
 

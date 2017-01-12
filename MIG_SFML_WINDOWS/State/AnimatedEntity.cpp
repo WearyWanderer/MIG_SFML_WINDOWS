@@ -10,11 +10,17 @@ sf::Rect<int> AnimatedEntity::getCurrentFrameRect()
 		return m_spriteRect;
 	else
 	{
-		sf::Rect<int> newTextRect;
+		sf::Rect<int> newTextRect = m_spriteRect;
 		int numSpritesPerRow = floor(m_sprite.getTexture()->getSize().x / m_spriteRect.width);
-		int currRowNum = (m_currentFrame + 1) % numSpritesPerRow;
+		int currRowNum = m_currentFrame / numSpritesPerRow;
+		int currColNum = m_currentFrame % numSpritesPerRow;
 
-		return m_spriteRect;
+		newTextRect.top = currRowNum * m_spriteRect.height;
+		newTextRect.height = m_spriteRect.height;
+		newTextRect.left = currColNum * m_spriteRect.width;
+		newTextRect.width = m_spriteRect.width;
+
+		return newTextRect;
 	}
 	//TODO - else calculate the spritesheet frame new rect
 }
