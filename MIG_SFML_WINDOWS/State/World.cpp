@@ -6,7 +6,7 @@ World::World(TextureLibrary* worldTextures, sf::RenderWindow* window) : BaseLoop
 {
 	m_window = window;
 
-	AddPlayer(100, 200, 0, worldTextures->getAnimatedTexture(0));
+	AddPlayer(0, 300, 400, worldTextures->getAnimatedTexture("p1walkcyclesheet"));
 }
 
 
@@ -26,17 +26,17 @@ void World::Init()
 
 void World::Simulate(float deltaTime)
 {
-
+	for (Player* i : m_players)
+	{
+		if (i->getCurrentFrameNum() == 10)
+			i->setCurrentFrame(0);
+		else
+			i->setNextFrame(deltaTime);
+	}
 }
 
 void World::Render()
 {
 	for (Player* i : m_players)
-	{
 		m_window->draw(i->m_sprite);
-		if (i->getCurrentFrameNum() == 10)
-			i->setCurrentFrame(0);
-		else
-			i->setNextFrame();
-	}
 }

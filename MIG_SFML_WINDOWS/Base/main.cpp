@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "Application.h"
 
+#include <iostream>
+
 int main()
 {
 	Application app;
@@ -25,7 +27,6 @@ int main()
 
 			//do anything that should be controlled by time instead of per frame here
 			app.Simulate(deltaTime);
-
 			frameTime -= deltaTime;
 			t += deltaTime;
 		}

@@ -25,10 +25,15 @@ sf::Rect<int> AnimatedEntity::getCurrentFrameRect()
 	//TODO - else calculate the spritesheet frame new rect
 }
 
-void AnimatedEntity::setNextFrame() 
+void AnimatedEntity::setNextFrame(float deltaTime) 
 { 
-	m_currentFrame++; 
-	m_sprite.setTextureRect(getCurrentFrameRect());
+	m_timer += deltaTime;
+	if (m_timer > animSpeed)
+	{
+		m_currentFrame++;
+		m_sprite.setTextureRect(getCurrentFrameRect());
+		m_timer = 0.0f;
+	}
 };
 
 void AnimatedEntity::setCurrentFrame(int frame)

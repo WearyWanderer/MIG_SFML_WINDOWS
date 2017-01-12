@@ -7,6 +7,7 @@
 #endif
 
 #include <utility>
+#include <map>
 
 class TextureLibrary
 {
@@ -14,15 +15,15 @@ public:
 	TextureLibrary();
 	~TextureLibrary();
 
-	int AddTexture(std::string filePath);
-	int AddSpritesheetTexture(std::string filePath, sf::Rect<int> spriteSize);
+	int AddTexture(std::string filePath, std::string textureName);
+	int AddSpritesheetTexture(std::string filePath, sf::Rect<int> spriteSize, std::string textureName);
 
-	sf::Texture* getTexture(int index) { if (m_library.size() - 1 >= index) return &m_library.at(index); else return nullptr; };
-	std::pair<sf::Texture, sf::Rect<int>>* getAnimatedTexture(int index) { if (m_animatedLibrary.size() - 1 >= index) return &m_animatedLibrary.at(index); else return nullptr; };
+	sf::Texture* getTexture(std::string textureName);
+	std::pair<sf::Texture, sf::Rect<int>>* getAnimatedTexture(std::string textureName);
 
 private:
 	//static determination in an array would be nicer method of doing this, and use a std::pair with int for id reference
-	std::vector<sf::Texture> m_library;
-	std::vector <std::pair<sf::Texture, sf::Rect<int>>> m_animatedLibrary;
+	std::map <std::string, sf::Texture> m_library;
+	std::map <std::string, std::pair<sf::Texture, sf::Rect<int>>> m_animatedLibrary;
 };
 
