@@ -26,8 +26,11 @@ void Application::Init()
 	m_mainWorld = World(&m_playerTextures, &m_window);
 }
 
+//Apply network related stuff here, consume any packets or messages that we need to
 void Application::Update()
 {
+	m_input.KeyboardInput(&m_state, &m_mainWorld);
+
 	sf::Event event;
 	while (m_window.pollEvent(event))
 	{
@@ -36,6 +39,7 @@ void Application::Update()
 	}
 }
 
+//local simulation, gravity, damage, timer countdown etc. here
 void Application::Simulate(float deltaTime)
 {
 	m_bgRenderer.Simulate(deltaTime);

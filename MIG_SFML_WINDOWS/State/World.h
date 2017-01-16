@@ -25,8 +25,13 @@ public:
 
 	void AddPlayer(int uniquePlayerID, float x, float y, std::pair<sf::Texture, sf::Rect<int>>* animTexture);
 
+
+	//Local user actions within the world
+	void MovePlayer(PlayerState state);
+
 private:
 	std::vector<Player*> m_players;
+	Player* m_localPlayer; //the local player is the way we will control input for players who're joining a lobby, we'll know our unique players id once the server tells us what it is
 
 	sf::RenderWindow* m_window;
 };

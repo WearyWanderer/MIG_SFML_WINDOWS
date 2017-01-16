@@ -17,12 +17,21 @@ void Player::SetPlayerNextTexture()
 		
 		break;
 	case PLAYER_WALKING_LEFT:
-		
+		m_sprite.setScale(-1.0f, 1.0f);
 		break;
 	case PLAYER_WALKING_RIGHT:
-
+		m_sprite.setScale(1.0f, 1.0f);
 		break;
 	}
 
 
+}
+
+void Player::SetPlayerState(PlayerState state) 
+{
+	if (state != m_state)
+	{
+		m_state = state;
+		SetPlayerNextTexture();
+	}
 }
