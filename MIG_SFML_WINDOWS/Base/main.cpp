@@ -5,6 +5,12 @@
 
 int main()
 {
+#ifdef _WIN32
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#elif __APPLE__
+
+#endif
+
 	Application app;
 	app.Init();
 

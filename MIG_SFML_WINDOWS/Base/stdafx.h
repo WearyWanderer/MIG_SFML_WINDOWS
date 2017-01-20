@@ -3,8 +3,22 @@
 //STL libraries
 #include <string>
 
+//Debug mem leak logs on Windows
+#ifdef _WIN32
+#define _CRTDBG_MAP_ALLOC  
+#include <stdlib.h>  
+#include <crtdbg.h>  
+#elif __APPLE__
+
+#endif
+
 //SFML libs
-#include <SFML\Graphics.hpp>
+#include <TGUI\TGUI.hpp>
+
+#include "..\Graphics\TexturesSingleton.h"
+
+#define WIDTH 1360
+#define HEIGHT 768
 
 //The layers used for rendering order, as well as for collision objects
 enum GameLayers

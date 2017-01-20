@@ -8,14 +8,13 @@
 #include "..\Base\BaseLoopClass.h"
 #endif
 
-#include "TextureLibrary.h"
 #include "BackgroundEntity.h"
 
 class BackgroundRenderer : public BaseLoopClass
 {
 public:
 	BackgroundRenderer() {};
-	BackgroundRenderer(TextureLibrary* bgTextures, sf::RenderWindow* window);
+	BackgroundRenderer(sf::RenderWindow* window);
 	~BackgroundRenderer();
 
 	void Init() override {};
@@ -25,6 +24,5 @@ public:
 
 private:
 	BackgroundEntity m_clouds[10];
-	sf::RenderWindow* m_window;
 };
 

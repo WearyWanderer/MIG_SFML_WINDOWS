@@ -2,10 +2,10 @@
 #include "GraphicsUtilities.h"
 #include <iostream>
 
-BackgroundRenderer::BackgroundRenderer(TextureLibrary* bgTextures, sf::RenderWindow* window) : BaseLoopClass(window)
+BackgroundRenderer::BackgroundRenderer(sf::RenderWindow* window) : BaseLoopClass(window)
 {
 	m_window = window;
-
+	TextureLibrary* bgTextures = &TexturesSingleton::instance()->m_bgTextures;
 #pragma region Clouds
 	unsigned char cloudOptions = 0;
 	cloudOptions |= wrapAroundScreen;

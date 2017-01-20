@@ -16,7 +16,7 @@ class World : public BaseLoopClass
 {
 public:
 	World() {};
-	World(TextureLibrary* worldTextures, sf::RenderWindow* window);
+	World(sf::RenderWindow* window);
 	~World();
 
 	void Init() override;
@@ -32,7 +32,5 @@ public:
 private:
 	std::vector<Player*> m_players;
 	Player* m_localPlayer; //the local player is the way we will control input for players who're joining a lobby, we'll know our unique players id once the server tells us what it is
-
-	sf::RenderWindow* m_window;
 };
 

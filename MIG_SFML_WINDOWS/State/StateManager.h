@@ -10,8 +10,6 @@ enum Scene
 class StateManager
 {
 public:
-
-
 	StateManager();
 	~StateManager();
 
@@ -20,6 +18,6 @@ public:
 	Scene getCurrentScene() { return m_currentScene; }
 
 private:
-	Scene m_currentScene = GAME_LOOP; //FOR NOW, THEN SWITCH TO 0 when WE HAVE MENU
+	Scene m_currentScene = MAIN_MENU; //FOR NOW, THEN SWITCH TO 0 when WE HAVE MENU
 };
 

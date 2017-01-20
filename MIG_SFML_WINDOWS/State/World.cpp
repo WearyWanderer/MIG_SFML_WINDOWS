@@ -2,11 +2,10 @@
 
 
 
-World::World(TextureLibrary* worldTextures, sf::RenderWindow* window) : BaseLoopClass(window)
+World::World(sf::RenderWindow* window)
 {
 	m_window = window;
-
-	AddPlayer(0, 300, 400, worldTextures->getAnimatedTexture("p1walkcyclesheet"));
+	AddPlayer(0, 300, 400, TexturesSingleton::instance()->m_playerTextures.getAnimatedTexture("p1walkcyclesheet"));
 	//TEMP
 	m_localPlayer = m_players[0];
 }

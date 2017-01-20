@@ -1,10 +1,6 @@
 #pragma once
 
-#ifdef _WIN32
-#include "..\Base\stdafx.h"
-#elif __APPLE__
-#include "../Base/stdafx.h"
-#endif
+#include <SFML\Graphics.hpp>
 
 #include <utility>
 #include <map>

@@ -2,6 +2,13 @@
 
 Application::Application()
 {
+	srand(time(NULL));
+	m_window.create(sf::VideoMode(WIDTH, HEIGHT), "Multiplayer ICA2 Prototype");
+	m_gui.setWindow(m_window);
+	m_menu = MainMenu(&m_gui, &m_window);
+
+	m_bgRenderer = BackgroundRenderer(&m_window);
+	m_mainWorld = World(&m_window);
 }
 
 Application::~Application()
@@ -10,20 +17,7 @@ Application::~Application()
 
 void Application::Init()
 {
-	srand(time(NULL));
-	m_window.create(sf::VideoMode(700, 700), "SFML works!");
-
-	m_bgTextures.AddTexture("Art/cloud1.png", "cloud1");
-	m_bgTextures.AddTexture("Art/cloud4.png", "cloud4");
-	m_bgTextures.AddTexture("Art/cloud6.png", "cloud6");
-
-	m_playerTextures.AddSpritesheetTexture("Art/Players/p1_walk.png", sf::Rect<int>(0,0,73,97), "p1walkcyclesheet");
-	m_playerTextures.AddTexture("Art/Players/p1_duck.png", "p1duck");
-	m_playerTextures.AddTexture("Art/Players/p1_duck.png", "p1jump");
-
-
-	m_bgRenderer = BackgroundRenderer(&m_bgTextures, &m_window);
-	m_mainWorld = World(&m_playerTextures, &m_window);
+	m_menu.Init();
 }
 
 //Apply network related stuff here, consume any packets or messages that we need to
@@ -36,21 +30,45 @@ void Application::Update()
 	{
 		if (event.type == sf::Event::Closed)
 			m_window.close();
+
+		m_gui.handleEvent(event);
+	}
+
+	if (m_state.getCurrentScene() == GAME_LOOP /*&& something about our network connection being correctly set up, then next loop check if we have any outstanding messages to apply*/)
+	{
 	}
 }
 
 //local simulation, gravity, damage, timer countdown etc. here
 void Application::Simulate(float deltaTime)
 {
-	m_bgRenderer.Simulate(deltaTime);
-	m_mainWorld.Simulate(deltaTime);
+	if (m_state.getCurrentScene() == GAME_LOOP)
+	{
+		m_bgRenderer.Simulate(deltaTime);
+		m_mainWorld.Simulate(deltaTime);
+	}
 }
 
 void Application::Render()
 {
 	m_window.clear(sf::Color(0, 185, 255, 255));
 	//m_window.clear(sf::Color(142, 185, 255, 255)); sky cols
-	m_bgRenderer.Render();
-	m_mainWorld.Render();
+
+	switch (m_state.getCurrentScene())
+	{
+	case LOADING_SCREEN:
+
+		break;
+	case GAME_LOOP:
+		m_bgRenderer.Render();
+		m_mainWorld.Render();
+		break;
+	case MAIN_MENU:
+	default:
+		m_menu.Render();
+		m_gui.draw();
+		break;
+	}
+
 	m_window.display();
 }
