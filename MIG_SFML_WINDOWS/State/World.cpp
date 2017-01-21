@@ -5,7 +5,7 @@
 World::World(sf::RenderWindow* window)
 {
 	m_window = window;
-	AddPlayer(0, 300, 400, TexturesSingleton::instance()->m_playerTextures.getAnimatedTexture("p1walkcyclesheet"));
+	AddPlayer(0, WIDTH / 2, HEIGHT, TexturesSingleton::instance()->m_playerTextures.getAnimatedTexture("p1walkcyclesheet"));
 	//TEMP
 	m_localPlayer = m_players[0];
 }
@@ -13,6 +13,8 @@ World::World(sf::RenderWindow* window)
 
 World::~World()
 {
+	//for (Player* i : m_players)
+	//	delete(i);
 }
 
 void World::AddPlayer(int uniquePlayerID, float x, float y, std::pair<sf::Texture, sf::Rect<int>>* animTexture)

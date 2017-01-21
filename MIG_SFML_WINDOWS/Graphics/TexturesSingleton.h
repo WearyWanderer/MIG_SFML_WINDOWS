@@ -29,10 +29,7 @@ private:
 	};
 	~TexturesSingleton();
 
-							  // C++ 11
-							  // =======
-							  // We can use the better technique of deleting the methods
-							  // we don't want.
+
 public:
 	TexturesSingleton(TexturesSingleton const&) = delete;
 	void operator=(TexturesSingleton const&) = delete;

@@ -11,17 +11,17 @@ int main()
 
 #endif
 
-	Application app;
-	app.Init();
+	Application* app = Application::instance();
+	app->Init();
 
 	sf::Clock clock;
 	float currentTime = clock.getElapsedTime().asSeconds();
 	float dt = 1 / 60.0f, t = 0.0f;
 
-	while (app.isRunning())
+	while (app->isRunning())
 	{
 		//Consume network queued messages and update the game simulation from them
-		app.Update();
+		app->Update();
 
 		float newTime = clock.getElapsedTime().asSeconds();
 		float frameTime = newTime - currentTime;
@@ -32,12 +32,12 @@ int main()
 			float deltaTime = std::min(frameTime, dt);
 
 			//do anything that should be controlled by time instead of per frame here
-			app.Simulate(deltaTime);
+			app->Simulate(deltaTime);
 			frameTime -= deltaTime;
 			t += deltaTime;
 		}
 
-		app.Render();
+		app->Render();
 	}
 
 	return 0;
