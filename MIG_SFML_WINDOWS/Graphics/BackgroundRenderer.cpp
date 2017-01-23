@@ -42,7 +42,10 @@ void BackgroundRenderer::Simulate(float deltaTime)
 		m_clouds[i].m_sprite.move(m_clouds[i].m_speed * deltaTime, 0.0f);
 
 		if (!m_clouds[i].m_sprite.getGlobalBounds().intersects(screenRect))
+		{
 			m_clouds[i].m_sprite.setPosition(screenRect.left, m_clouds[i].m_sprite.getPosition().y);
+			m_clouds[i].m_sprite.move(-30.0f, 0.0f);
+		}
 	}
 }
 

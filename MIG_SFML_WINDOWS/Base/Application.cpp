@@ -9,6 +9,7 @@ Application::Application()
 	m_state = std::make_shared<StateManager>();
 	m_bgRenderer = std::make_shared<BackgroundRenderer>(&m_window);
 	m_mainWorld = std::make_shared<World>(&m_window);
+	m_client = std::make_shared<ClientConnectionManager>();
 }
 
 Application::~Application()

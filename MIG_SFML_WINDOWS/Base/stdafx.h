@@ -13,6 +13,8 @@
 #endif
 
 //SFML libs
+#include <SFML\Graphics.hpp>
+#include <SFML\Network.hpp>
 #include <TGUI\TGUI.hpp>
 
 #include "..\Graphics\TexturesSingleton.h"

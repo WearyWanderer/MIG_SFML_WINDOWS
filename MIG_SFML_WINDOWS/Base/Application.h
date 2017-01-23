@@ -1,17 +1,17 @@
 #pragma once
 
-#include "stdafx.h"
 #include <stdio.h>      /* printf, scanf, puts, NULL */
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 
 #ifdef _WIN32
+	#include "stdafx.h"
 	#include "../State/AnimatedEntity.h"
 	#include "../Graphics/BackgroundRenderer.h"
 	#include "../State/World.h"
 	#include "../Base/InputManager.h"
 	#include "../State/MainMenu.h"
-	#include "stdafx.h"
+	#include "../Networking/ClientConnectionManager.h"
 #elif __APPLE__
 	#include "..\Graphics\TextureLibrary.h"
 	#include "..\State\Entity.h"
@@ -49,6 +49,7 @@ public:
 
 	inline World* WorldSystem() { return m_mainWorld.get(); }
 	inline StateManager* StateSystem() { return m_state.get(); }
+	inline ClientConnectionManager* Client() { return m_client.get(); }
 
 protected:
 	sf::RenderWindow m_window;
@@ -63,6 +64,10 @@ protected:
 
 	std::shared_ptr<MainMenu> m_menu;
 	std::shared_ptr<World> m_mainWorld;
+#pragma endregion
+
+#pragma region TEMP NETWORKING
+	std::shared_ptr<ClientConnectionManager> m_client;
 #pragma endregion
 };
 

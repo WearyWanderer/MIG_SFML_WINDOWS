@@ -22,8 +22,15 @@ public:
 	void Render() override;
 
 	void SwitchMenu(ActiveMenu menu);
+	//void InitHosting();
+	void InitLobbySearch();
+	void RefreshLobbySearch();
 
 private:
+	sf::Font m_defaultFont;
+	sf::Text lobbyCount;
+
+
 	tgui::Gui* m_gui;
 	ActiveMenu m_active = MAIN_ROOT;
 };
