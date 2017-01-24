@@ -82,3 +82,6 @@ Debug/MIG_SFML_WINDOWS.ilk
 *.pdb
 *.sln
 *.tlog
+
+Debug/
+Release/

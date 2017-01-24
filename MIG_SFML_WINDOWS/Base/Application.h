@@ -21,6 +21,7 @@
 #endif
 
 class MainMenu;
+class ClientConnectionManager;
 
 class Application
 {
@@ -50,6 +51,7 @@ public:
 	inline World* WorldSystem() { return m_mainWorld.get(); }
 	inline StateManager* StateSystem() { return m_state.get(); }
 	inline ClientConnectionManager* Client() { return m_client.get(); }
+	inline MainMenu* Menu() { return m_menu.get(); }
 
 protected:
 	sf::RenderWindow m_window;

@@ -22,14 +22,22 @@ public:
 	void Render() override;
 
 	void SwitchMenu(ActiveMenu menu);
+	ActiveMenu GetActiveMenu() { return m_active; }
 	//void InitHosting();
 	void InitLobbySearch();
 	void RefreshLobbySearch();
+	void AddLobbyListing(std::string lobbyString, unsigned int lobbyNum);
 
+	void AttemptJoinLobby();
+
+#pragma region Thread Safe Queue Objects
+	std::mutex lock;
+	std::vector<std::string> lobbiesQueue;
+#pragma endregion
 private:
 	sf::Font m_defaultFont;
 	sf::Text lobbyCount;
-
+	
 
 	tgui::Gui* m_gui;
 	ActiveMenu m_active = MAIN_ROOT;

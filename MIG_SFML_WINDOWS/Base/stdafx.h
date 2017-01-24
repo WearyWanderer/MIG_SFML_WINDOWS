@@ -2,6 +2,8 @@
 
 //STL libraries
 #include <string>
+#include <thread>
+#include <mutex>
 
 //Debug mem leak logs on Windows
 #ifdef _WIN32
@@ -21,6 +23,8 @@
 
 #define WIDTH 1360
 #define HEIGHT 768
+
+#define BUFFSIZE 256
 
 //The layers used for rendering order, as well as for collision objects
 enum GameLayers

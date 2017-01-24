@@ -18,11 +18,19 @@ MainMenu::~MainMenu()
 void MainMenu::Init() 
 {
 	SwitchMenu(MAIN_ROOT);
+	lobbiesQueue.reserve(100); //probably unlikely to have more than 100 lobbies, tweakable anyway
 }
 
 void MainMenu::Simulate(float deltaTime)
 {
-
+	if (!lobbiesQueue.empty())
+	{
+		std::shared_ptr<tgui::ListBox> list = m_gui->get<tgui::ListBox>("Lobby Listings");
+		for each (auto i in lobbiesQueue)
+			list->addItem(i);
+		
+		lobbiesQueue.clear();
+	}
 }
 
 void MainMenu::Render()
@@ -67,25 +75,14 @@ void MainMenu::SwitchMenu(ActiveMenu menu)
 		break;
 	case LOBBY_SEARCH:
 		{
-			lobbyCount.setString("Online Lobbies: 11");
+			lobbyCount.setString("Online Lobbies: 0");
 			lobbyCount.setPosition(WIDTH / 2 - (lobbyCount.getLocalBounds().width / 2), HEIGHT / 4.85);
 
 			auto lobbyList = std::make_shared<tgui::ListBox>();
 			lobbyList->setSize(WIDTH / 3, 120);
 			lobbyList->setItemHeight(24);
 			lobbyList->setPosition((WIDTH / 2) - ((WIDTH / 3) / 2), HEIGHT / 4);
-			lobbyList->addItem("Lobby Name			|		  Players		|			Ping(ms)");
-			lobbyList->addItem("Item 2");
-			lobbyList->addItem("Item 3");
-			lobbyList->addItem("Item 1");
-			lobbyList->addItem("Item 2");
-			lobbyList->addItem("Item 3");
-			lobbyList->addItem("Item 1");
-			lobbyList->addItem("Item 2");
-			lobbyList->addItem("Item 3");
-			lobbyList->addItem("Item 1");
-			lobbyList->addItem("Item 2");
-			lobbyList->addItem("Item 3");
+			lobbyList->addItem("Lobby Name			|		  Players		|			Ping(ms)", "Legend");
 
 			tgui::Button::Ptr refreshButton = std::make_shared<tgui::Button>();
 			refreshButton->setPosition((WIDTH / 2) - (refreshButton->getSize().x) - 5.0f, HEIGHT / 2.1);
@@ -104,7 +101,7 @@ void MainMenu::SwitchMenu(ActiveMenu menu)
 			m_gui->add(backButton);
 			m_gui->add(lobbyList, "Lobby Listings");
 
-			joinButton->connect("pressed", &StateManager::SwitchScene, Application::instance()->StateSystem(), LOADING_SCREEN);
+			joinButton->connect("pressed", &MainMenu::AttemptJoinLobby, this);
 			refreshButton->connect("pressed", &MainMenu::RefreshLobbySearch, this);
 			backButton->connect("pressed", &MainMenu::SwitchMenu, this, MAIN_ROOT);
 		}
@@ -148,9 +145,6 @@ void MainMenu::InitLobbySearch()
 {
 	SwitchMenu(LOBBY_SEARCH);
 	Application::instance()->Client()->BroadcastLobbySearch();
-
-
-	//we need to do this in a thread where we can live populate the list of lobbies
 }
 
 void MainMenu::RefreshLobbySearch()
@@ -160,6 +154,23 @@ void MainMenu::RefreshLobbySearch()
 
 	std::shared_ptr<tgui::ListBox> list = m_gui->get<tgui::ListBox>("Lobby Listings");
 	list->removeAllItems();
+	list->addItem("Lobby Name			|		  Players		|			Ping(ms)", "Legend");
+	
+	Application::instance()->Client()->BroadcastLobbySearch();
+}
 
-	//Stop the thread that has been looking for lobbies here or restart the thread that has been looking for lobbies
+void MainMenu::AddLobbyListing(std::string lobbyString, unsigned int lobbyNum)
+{
+	lobbyCount.setString("Online Lobbies: " + std::to_string(lobbyNum));
+	lobbiesQueue.push_back(lobbyString);
+}
+
+void MainMenu::AttemptJoinLobby()
+{
+	std::shared_ptr<tgui::ListBox> list = m_gui->get<tgui::ListBox>("Lobby Listings");
+
+	if (!(list->getSelectedItemId() == "Title") && list->getSelectedItem() != "")
+	{
+		Application::instance()->Client()->AttemptConnection(list->getSelectedItem());
+	}
 }

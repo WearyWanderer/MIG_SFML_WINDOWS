@@ -46,10 +46,19 @@ void Application::Update()
 //local simulation, gravity, damage, timer countdown etc. here
 void Application::Simulate(float deltaTime)
 {
-	if (m_state->getCurrentScene() == GAME_LOOP)
+	switch (m_state->getCurrentScene())
 	{
+	case LOADING_SCREEN:
+
+		break;
+	case GAME_LOOP:
 		m_bgRenderer->Simulate(deltaTime);
 		m_mainWorld->Simulate(deltaTime);
+		break;
+	case MAIN_MENU:
+	default:
+		m_menu->Simulate(deltaTime);
+		break;
 	}
 }
 
