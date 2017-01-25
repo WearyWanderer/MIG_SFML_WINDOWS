@@ -6,7 +6,6 @@ MainMenu::MainMenu(tgui::Gui* gui, sf::RenderWindow* window) : BaseLoopClass(win
 	m_defaultFont.loadFromFile("Art/KenPixelHigh.ttf");
 	lobbyCount.setFont(m_defaultFont);
 	lobbyCount.setFillColor(sf::Color::Black);
-	
 }
 
 
@@ -132,7 +131,7 @@ void MainMenu::SwitchMenu(ActiveMenu menu)
 			m_gui->add(backButton, "Back Button");
 			m_gui->add(hostButton, "Host Button");
 
-			hostButton->connect("pressed", &StateManager::SwitchScene, Application::instance()->StateSystem(), LOADING_SCREEN);
+			hostButton->connect("pressed", &MainMenu::InitHosting, this);
 			backButton->connect("pressed", &MainMenu::SwitchMenu, this, MAIN_ROOT);
 		}
 		break;
@@ -173,4 +172,29 @@ void MainMenu::AttemptJoinLobby()
 	{
 		Application::instance()->Client()->AttemptConnection(list->getSelectedItem());
 	}
+}
+
+void MainMenu::InitHosting()
+{
+	std::string lobbyName, lobbyPass = " ";
+	std::shared_ptr<tgui::EditBox> ln = m_gui->get<tgui::EditBox>("Lobby Name");
+	std::shared_ptr<tgui::EditBox> lp = m_gui->get<tgui::EditBox>("Password");
+
+	if (ln->getText() == "")
+	{
+		//some warning that our lobby doesn't have a name!
+
+		return;
+	}
+
+	lobbyName = ln->getText();
+	lobbyPass = lp->getText();
+
+	if (Application::instance()->Client()->LaunchServerApplication(lobbyName, lobbyPass))
+	{
+		Application::instance()->SetHost();
+		Application::instance()->Client()->AttemptLocalConnection();
+		Application::instance()->StateSystem()->SwitchScene(LOADING_SCREEN);
+	}
+
 }

@@ -26,7 +26,7 @@ void Application::Init()
 //Apply network related stuff here, consume any packets or messages that we need to
 void Application::Update()
 {
-	m_input->KeyboardInput(StateSystem(), WorldSystem());
+	m_input->KeyboardInput();
 
 	sf::Event event;
 	while (m_window.pollEvent(event))
@@ -69,18 +69,31 @@ void Application::Render()
 
 	switch (m_state->getCurrentScene())
 	{
-	case LOADING_SCREEN:
+		case LOADING_SCREEN:
+		{
+			sf::Font font = Menu()->GetDefaultFont();
+			sf::Text* loading = new sf::Text();
+			loading->setFont(font);
+			loading->setString("Loading...");
+			loading->setCharacterSize(80);
+			loading->setFillColor(sf::Color::Black);
+			loading->setOrigin(loading->getLocalBounds().width / 2, loading->getLocalBounds().height / 2);
+			loading->setPosition(WIDTH / 2, HEIGHT / 2);
 
-		break;
-	case GAME_LOOP:
-		m_bgRenderer->Render();
-		m_mainWorld->Render();
-		break;
-	case MAIN_MENU:
-	default:
-		m_menu->Render();
-		m_gui.draw();
-		break;
+			m_window.draw(*loading);
+			break;
+		}
+		case GAME_LOOP:
+		{
+			m_bgRenderer->Render();
+			m_mainWorld->Render();
+			break;
+		}
+		case MAIN_MENU:
+		default:
+			m_menu->Render();
+			m_gui.draw();
+			break;
 	}
 
 	m_window.display();

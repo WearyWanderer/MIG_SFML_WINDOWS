@@ -24,7 +24,7 @@ public:
 	void Render() override;
 
 	void AddPlayer(int uniquePlayerID, float x, float y, std::pair<sf::Texture, sf::Rect<int>>* animTexture);
-
+	Player GetLocalPlayerCopy() { return Player(*m_localPlayer); }
 
 	//Local user actions within the world
 	void MovePlayer(PlayerState state);

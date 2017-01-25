@@ -9,9 +9,9 @@ InputManager::~InputManager()
 {
 }
 
-void InputManager::KeyboardInput(StateManager* state, World* world)
+void InputManager::KeyboardInput()
 {
-	switch (state->getCurrentScene())
+	switch (Application::instance()->StateSystem()->getCurrentScene())
 	{
 		case MAIN_MENU:
 		break;
@@ -24,21 +24,31 @@ void InputManager::KeyboardInput(StateManager* state, World* world)
 
 
 		case GAME_LOOP:
+#pragma region PLAYER MOVEMENT
 			bool notMoving = true;
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 			{
-				world->MovePlayer(PLAYER_WALKING_LEFT);
+				Application::instance()->WorldSystem()->MovePlayer(PLAYER_WALKING_LEFT);
 				notMoving = false;
 			}
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 			{
-				world->MovePlayer(PLAYER_WALKING_RIGHT);
+				Application::instance()->WorldSystem()->MovePlayer(PLAYER_WALKING_RIGHT);
 				notMoving = false;
 			}
 			
 
 			if (notMoving)
-				world->MovePlayer(PLAYER_IDLE);
+				Application::instance()->WorldSystem()->MovePlayer(PLAYER_IDLE);
+#pragma endregion
+#pragma region DEV TOGGLES
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::F1))
+			{
+				unsigned char newFlag = Application::instance()->Client()->GetDevFlags();
+				newFlag |= ARTIFICIAL_LATENCY;
+				Application::instance()->Client()->SetDevFlags(newFlag);
+			}
+#pragma endregion
 		break;
 	}
 }

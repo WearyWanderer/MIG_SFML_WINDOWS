@@ -22,8 +22,9 @@ public:
 	void Render() override;
 
 	void SwitchMenu(ActiveMenu menu);
-	ActiveMenu GetActiveMenu() { return m_active; }
-	//void InitHosting();
+	inline ActiveMenu GetActiveMenu() { return m_active; }
+	inline sf::Font GetDefaultFont() { return m_defaultFont; }
+	void InitHosting();
 	void InitLobbySearch();
 	void RefreshLobbySearch();
 	void AddLobbyListing(std::string lobbyString, unsigned int lobbyNum);
