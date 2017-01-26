@@ -18,6 +18,8 @@ const unsigned char ARTIFICIAL_LATENCY = 0x01;
 const unsigned char SIMULATE_HACKING = 0x02;
 const unsigned char ARTIFICIAL_TIMEOUT = 0x04;
 
+const size_t MAXBUFFSIZE = 512;
+
 struct ConnectionInfo
 {
 public:
@@ -53,7 +55,6 @@ protected:
 	sf::UdpSocket m_broadcastSocket;
 	sf::UdpSocket m_udpCommSocket;
 	sf::TcpSocket m_tcpCommSocket;
-	sf::TcpListener m_tcpListener;
 	
 	unsigned int m_portNum;
 

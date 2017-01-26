@@ -7,7 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace MIG_SFML_SERVER
+namespace SERVER
 {
     class Program
     {

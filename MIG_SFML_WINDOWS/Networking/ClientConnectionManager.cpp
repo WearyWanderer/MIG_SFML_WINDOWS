@@ -87,7 +87,7 @@ void ClientConnectionManager::ProcessLobbyResponses()
 
 		if (!(sender.toInteger() == 0 && port == 0))
 		{
-			std::string recievedMsg = datagram;
+			std::string recievedMsg(datagram, recieved);
 
 			m_lobbysFound++;
 			m_detectedLobbies.insert(std::pair<std::string, ConnectionInfo>(recievedMsg, ConnectionInfo(sender, port)));
@@ -114,11 +114,20 @@ bool ClientConnectionManager::AttemptConnection(std::string lobbyKey)
 		// error...
 	}
 
-	char data[15] = "requestspawn";
-	if (m_tcpCommSocket.send(data, 15) != sf::Socket::Done)
+	//char data[15] = "requestspawn";
+	//if (m_tcpCommSocket.send(data, 15) != sf::Socket::Done)
+	//{
+	//	// error...
+	//}
+
+	char registerPacket[MAXBUFFSIZE];
+	size_t recieved;
+	if (m_tcpCommSocket.receive(registerPacket, MAXBUFFSIZE, recieved) != sf::Socket::Done)
 	{
-		// error...
+
 	}
+
+	std::cout << registerPacket << std::endl;
 
 	return true;
 }
@@ -132,11 +141,20 @@ bool ClientConnectionManager::AttemptLocalConnection()
 		// error...
 	}
 
-	char data[15] = "requestspawn";
-	if (m_tcpCommSocket.send(data, 15) != sf::Socket::Done)
-	{
+	//char data[15] = "requestspawn";
+	//if (m_tcpCommSocket.send(data, 15) != sf::Socket::Done)
+	//{
 		// error...
+	//}
+
+	char registerPacket[MAXBUFFSIZE];
+	size_t recieved;
+	if (m_tcpCommSocket.receive(registerPacket, MAXBUFFSIZE, recieved) != sf::Socket::Done)
+	{
+
 	}
+
+	std::cout << registerPacket << std::endl;
 
 	return true;
 }
