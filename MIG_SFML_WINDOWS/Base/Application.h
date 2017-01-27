@@ -73,6 +73,8 @@ public:
 	inline void SetAppPath(std::string appPath) { m_appPath = appPath; }
 	inline std::string GetAppPath() { return m_appPath; }
 	inline void SetHost() { m_host = true; }
+
+	bool closing = false;
 protected:
 	sf::RenderWindow m_window;
 

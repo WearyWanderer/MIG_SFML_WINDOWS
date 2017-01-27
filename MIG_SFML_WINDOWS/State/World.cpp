@@ -10,6 +10,7 @@ World::World(sf::RenderWindow* window)
 
 World::~World()
 {
+	
 	//for (Player* i : m_players)
 	//	delete(i);
 }
@@ -75,4 +76,13 @@ void World::MovePlayer(PlayerState state)
 {
 	if (m_localPlayer != nullptr /* && notGoingToCollide(some stuff here)*/)
 		m_localPlayer->SetPlayerState(state);
+}
+
+void World::MovePlayer(int playerID, PlayerState state)
+{
+	for (Player* i : m_players)
+	{
+		if (i->GetPlayerID() == playerID)
+			i->SetPlayerState(state);
+	}
 }

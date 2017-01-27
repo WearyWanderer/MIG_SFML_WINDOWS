@@ -8,9 +8,9 @@ ClientConnectionManager::ClientConnectionManager()
 
 ClientConnectionManager::~ClientConnectionManager()
 {
-	if (m_commSendThread != nullptr)
+	if (m_commTcpSendThread != nullptr)
 	{
-		m_tcpCommSocket.send("disconnect;", (size_t)sizeof("disconnect;"));
+		m_tcpCommSocket.send("dp;", (size_t)sizeof("dp;"));
 		m_tcpCommSocket.disconnect();
 		m_udpCommSocket.unbind();
 	}
@@ -19,31 +19,49 @@ ClientConnectionManager::~ClientConnectionManager()
 void ClientConnectionManager::StartClientCommunication()
 {
 	//start the thread which will send player data via the udp connection
-	m_commSendThread = std::make_shared<std::thread>(&ClientConnectionManager::SendData, this);
-	m_commSendThread->detach();
+	m_commUdpSendThread = std::make_shared<std::thread>(&ClientConnectionManager::SendUdpData, this);
+	m_commUdpSendThread->detach();
 
 	//start the thread which will recieve player data via the UDP and TCP connections
-	m_commRecieveThread = std::make_shared<std::thread>(&ClientConnectionManager::RecieveData, this);
-	m_commRecieveThread->detach();
+	m_commUdpRecieveThread = std::make_shared<std::thread>(&ClientConnectionManager::RecieveUdpData, this);
+	m_commUdpRecieveThread->detach();
+
+	//start the thread which will send player data via the udp connection
+	m_commTcpSendThread = std::make_shared<std::thread>(&ClientConnectionManager::SendTcpData, this);
+	m_commTcpSendThread->detach();
+
+	//start the thread which will recieve player data via the UDP and TCP connections
+	m_commTcpRecieveThread = std::make_shared<std::thread>(&ClientConnectionManager::RecieveTcpData, this);
+	m_commTcpRecieveThread->detach();
 }
 
-void ClientConnectionManager::SendData()
+void ClientConnectionManager::SendTcpData()
 {
-	Player localPlayerCopy = Application::instance()->WorldSystem()->GetLocalPlayerCopy();
-	while (Application::instance()->StateSystem()->getCurrentScene() == GAME_LOOP)
+	while (Application::instance()->StateSystem()->getCurrentScene() == GAME_LOOP && !Application::instance()->closing)
 	{
-		//send our positional data in a packet here with the 'position' and 'playerID'
-		SendPlayerPosition(&localPlayerCopy);
-
-
 
 	}
 }
 
-//curently does not catch paritally complete or partially sent messages, need a nice packet structure to do this instead
-void ClientConnectionManager::RecieveData()
+void ClientConnectionManager::SendUdpData()
 {
-	while (Application::instance()->StateSystem()->getCurrentScene() == GAME_LOOP)
+	PlayerState currentSentServerState = PLAYER_IDLE;
+	while (Application::instance()->StateSystem()->getCurrentScene() == GAME_LOOP && !Application::instance()->closing)
+	{
+		Player localPlayerCopy = Application::instance()->WorldSystem()->GetLocalPlayerCopy();
+		//send our positional data in a packet here with the 'position' and 'playerID'
+		if (localPlayerCopy.GetPlayerState() != currentSentServerState)
+		{
+			SendPlayerPosition(&localPlayerCopy);
+			currentSentServerState = localPlayerCopy.GetPlayerState();
+		}
+	}
+}
+
+//curently does not catch paritally complete or partially sent messages, need a nice packet structure to do this instead
+void ClientConnectionManager::RecieveTcpData()
+{
+	while (Application::instance()->StateSystem()->getCurrentScene() == GAME_LOOP && !Application::instance()->closing)
 	{
 		char tcpData[BUFFSIZE];
 		size_t recieved;
@@ -52,13 +70,11 @@ void ClientConnectionManager::RecieveData()
 		std::string recievedMsg(tcpData, recieved);
 		std::cout << recievedMsg << std::endl;
 
-		std::string initMsg(tcpData, recieved);
-		std::string delimiter(";");
-		std::list<std::string> tokens = split(initMsg, ";");
+		std::list<std::string> tokens = split(recievedMsg, ";");
 
 		while (!tokens.empty())
 		{
-			if (tokens.front() == "addplayer")
+			if (tokens.front() == "ap")
 			{
 				tokens.pop_front();
 				int playerID = std::stoi(tokens.front());
@@ -66,26 +82,63 @@ void ClientConnectionManager::RecieveData()
 				Application::instance()->WorldSystem()->AddPlayer(playerID, std::stof(tokens.front()), HEIGHT, TexturesSingleton::instance()->m_playerTextures.getAnimatedTexture("p1walkcyclesheet"));
 				tokens.pop_front();
 			}
-			else if (tokens.front() == "disconnected")
+			else if (tokens.front() == "dp")
 			{
 				tokens.pop_front();
 				Application::instance()->WorldSystem()->RemovePlayer(std::stoi(tokens.front()));
 				tokens.pop_front();
 			}
+			else
+				tokens.pop_front();
 		}
+	}
+}
 
+void ClientConnectionManager::RecieveUdpData()
+{
+	while (Application::instance()->StateSystem()->getCurrentScene() == GAME_LOOP && !Application::instance()->closing)
+	{
+		char udpData[BUFFSIZE];
+		size_t recieved;
+		sf::IpAddress sender;
+		unsigned short port;
+
+		m_udpCommSocket.receive(udpData, BUFFSIZE, recieved, sender, port);
+
+		std::string recievedMsg = std::string(udpData, recieved);
+		std::cout << recievedMsg << std::endl;
+
+		std::list<std::string> tokens = split(recievedMsg, ";");
+
+		while (!tokens.empty())
+		{
+			if (tokens.front() == "mp")
+			{
+				tokens.pop_front();
+				int playerID = std::stoi(tokens.front());
+				tokens.pop_front();
+				int playerState = std::stoi(tokens.front());
+				tokens.pop_front();
+				Application::instance()->WorldSystem()->MovePlayer(playerID, (PlayerState)playerState);
+				tokens.pop_front();
+			}
+			else
+				tokens.pop_front();
+		}
 	}
 }
 
 void ClientConnectionManager::SendPlayerPosition(Player* playerCopy)
 {
-	if (playerCopy->GetPlayerState() != PLAYER_IDLE)
-	{
 		if ((m_flags & ARTIFICIAL_LATENCY) == ARTIFICIAL_LATENCY)
 		{
-			//send pos data at a delay
+			//send pos data at a delay instead by doing some sort of sleep here
+			
 		}
-	}
+
+		std::string playPosMsg = "mp;" + std::to_string((int)playerCopy->GetPlayerState()) + ";ep;";
+		const char* data = playPosMsg.c_str();
+		m_udpCommSocket.send(data, playPosMsg.length(), m_tcpCommSocket.getRemoteAddress(), m_portNum);
 }
 
 std::shared_ptr<std::thread> ClientConnectionManager::BroadcastLobbySearch()
@@ -165,7 +218,7 @@ bool ClientConnectionManager::AttemptConnection(std::string lobbyKey)
 
 	if (status != sf::Socket::Done)
 	{
-		// error...
+		std::cerr << "Error in binding to tcp!" << std::endl;
 	}
 
 	char registerPacket[MAXBUFFSIZE];
@@ -177,15 +230,31 @@ bool ClientConnectionManager::AttemptConnection(std::string lobbyKey)
 
 	std::string initMsg(registerPacket, recieved);
 	std::string delimiter(";");
-	std::string token;
-	token = initMsg.substr(0, initMsg.find(delimiter));
-	initMsg.erase(0, initMsg.find(delimiter) + delimiter.length());
+	std::list<std::string> tokens = split(initMsg, ";");
 
 	//first one is uniqueplayerid
-	unsigned int playerID = std::stoul(token);
-	float xPos = std::stof(initMsg);
-	Application::instance()->WorldSystem()->Init(playerID, xPos, HEIGHT);
+	unsigned int playerID = std::stoul(tokens.front());
+	tokens.pop_front();
+	float xPos = std::stof(tokens.front());
+	tokens.pop_front();
+	int udpServerPort = std::stoi(tokens.front());
 
+	m_portNum = udpServerPort;
+
+	status = m_udpCommSocket.bind(sf::Socket::AnyPort, serverToContact.address);
+
+	if (status != sf::Socket::Done)
+	{
+		std::cerr << "Error in binding to udp!" << std::endl;
+	}
+
+	//recieved our acceptance packet, send the port we're going to listen on udp
+	std::string portNum = "lp;" + std::to_string(m_udpCommSocket.getLocalPort()) + ";ep;";
+	const char* port = portNum.c_str();
+
+	m_udpCommSocket.send(port, portNum.length(), serverToContact.address, m_portNum);
+
+	Application::instance()->WorldSystem()->Init(playerID, xPos, HEIGHT);
 	Application::instance()->StateSystem()->SwitchScene(GAME_LOOP);
 	StartClientCommunication();
 
@@ -194,7 +263,7 @@ bool ClientConnectionManager::AttemptConnection(std::string lobbyKey)
 
 bool ClientConnectionManager::AttemptLocalConnection()
 {
-	sf::Socket::Status status = m_tcpCommSocket.connect(m_tcpCommSocket.getRemoteAddress(), 8080);
+	sf::Socket::Status status = m_tcpCommSocket.connect(sf::IpAddress::LocalHost, 8080);
 
 	if (status != sf::Socket::Done)
 	{
@@ -210,15 +279,25 @@ bool ClientConnectionManager::AttemptLocalConnection()
 
 	std::string initMsg(registerPacket, recieved);
 	std::string delimiter(";");
-	std::string token;
-	token = initMsg.substr(0, initMsg.find(delimiter));
-	initMsg.erase(0, initMsg.find(delimiter) + delimiter.length());
+	std::list<std::string> tokens = split(initMsg, ";");
 
 	//first one is uniqueplayerid
-	unsigned int playerID = std::stoul(token);
-	float xPos = std::stof(initMsg);
-	Application::instance()->WorldSystem()->Init(playerID, xPos, HEIGHT);
+	unsigned int playerID = std::stoul(tokens.front());
+	tokens.pop_front();
+	float xPos = std::stof(tokens.front());
+	tokens.pop_front();
+	int udpServerPort = std::stoi(tokens.front());
 
+	m_portNum = udpServerPort;
+
+	status = m_udpCommSocket.bind(sf::Socket::AnyPort, sf::IpAddress::LocalHost);
+
+	if (status != sf::Socket::Done)
+	{
+		std::cerr << "Error in binding to udp!" << std::endl;
+	}
+
+	Application::instance()->WorldSystem()->Init(playerID, xPos, HEIGHT);
 	Application::instance()->StateSystem()->SwitchScene(GAME_LOOP);
 	StartClientCommunication();
 

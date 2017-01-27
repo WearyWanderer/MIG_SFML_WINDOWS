@@ -31,7 +31,7 @@ void InputManager::KeyboardInput()
 				Application::instance()->WorldSystem()->MovePlayer(PLAYER_WALKING_LEFT);
 				notMoving = false;
 			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 			{
 				Application::instance()->WorldSystem()->MovePlayer(PLAYER_WALKING_RIGHT);
 				notMoving = false;

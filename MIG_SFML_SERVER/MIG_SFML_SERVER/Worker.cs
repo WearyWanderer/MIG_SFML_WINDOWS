@@ -38,7 +38,7 @@ namespace SERVER
                             foreach (KeyValuePair<int, Client> c in task.clients)
                             {
                                 Client client = c.Value;
-                                client.tcp.Send(Encoding.ASCII.GetBytes("disconnected;" + task.task.originPlayerID + ";"));
+                                client.tcp.Send(Encoding.ASCII.GetBytes("dp;" + task.task.originPlayerID + ";ep;"));
 
                             }
                         }
@@ -60,7 +60,7 @@ namespace SERVER
                             foreach (KeyValuePair<int, Client> c in task.clients)
                             {
                                 if (c.Value.uniquePlayerID != clientLoading.uniquePlayerID)
-                                    clientLoading.tcp.Send(Encoding.ASCII.GetBytes("addplayer;" + c.Value.uniquePlayerID + ";" + c.Value.playerCurrentPos.First + ";"));
+                                    clientLoading.tcp.Send(Encoding.ASCII.GetBytes("ap;" + c.Value.uniquePlayerID + ";" + c.Value.playerCurrentPos.First + ";ep;"));
                             }
                         }
                         catch(ArgumentNullException e)
@@ -80,7 +80,7 @@ namespace SERVER
                             foreach (KeyValuePair<int, Client> c in task.clients)
                             {
                                 if(c.Value.uniquePlayerID != clientLoading.uniquePlayerID)
-                                    c.Value.tcp.Send(Encoding.ASCII.GetBytes("addplayer;" + clientLoading.uniquePlayerID + ";" + clientLoading.playerCurrentPos.First + ";"));
+                                    c.Value.tcp.Send(Encoding.ASCII.GetBytes("ap;" + clientLoading.uniquePlayerID + ";" + clientLoading.playerCurrentPos.First + ";ep;"));
                             }
                         }
                         catch (ArgumentNullException e)
@@ -95,11 +95,16 @@ namespace SERVER
                         try
                         {
                             task.clients.TryGetValue(task.task.originPlayerID, out clientLoading);
-
+                            Console.WriteLine("PositionUpdate");
                             foreach (KeyValuePair<int, Client> c in task.clients)
                             {
                                 if (c.Value.uniquePlayerID != clientLoading.uniquePlayerID)
-                                    c.Value.tcp.Send(Encoding.ASCII.GetBytes("moveplayer;" + clientLoading.uniquePlayerID + ";" + clientLoading.playerCurrentPos.First + ";" + clientLoading.playerCurrentPos.Second + ";"));
+                                {
+                                    byte[] dgram = Encoding.ASCII.GetBytes("mp;"
+                                                                            + clientLoading.uniquePlayerID + ";"
+                                                                            + (int)clientLoading.state + ";ep;");
+                                    c.Value.udp.Send(dgram, dgram.Length, c.Value.udpEP);
+                                }
                             }
                         }
                         catch (ArgumentNullException e)

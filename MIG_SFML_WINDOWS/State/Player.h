@@ -39,6 +39,7 @@ public:
 	PlayerState GetPlayerState() { return m_state; }
 
 	unsigned int GetPlayerID() { return m_id; }
+	inline sf::Vector2f getPlayerPos() { return m_sprite.getPosition(); }
 
 	float moveSpeed = 75.0f;
 private:

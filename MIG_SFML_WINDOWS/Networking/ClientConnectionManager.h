@@ -41,8 +41,10 @@ public:
 	void StartClientCommunication();
 #pragma endregion
 
-	void SendData();
-	void RecieveData();
+	void SendTcpData();
+	void RecieveTcpData();
+	void SendUdpData();
+	void RecieveUdpData();
 	void SendPlayerPosition(Player* playerCopy);
 	void ProcessLobbyResponses();
 	bool AttemptConnection(std::string lobbyKey);
@@ -73,11 +75,13 @@ protected:
 	sf::UdpSocket m_udpCommSocket;
 	sf::TcpSocket m_tcpCommSocket;
 	
-	unsigned int m_portNum;
+	unsigned int m_portNum; //for udp
 
 	std::shared_ptr<std::thread> m_broadcastThread = nullptr;
-	std::shared_ptr<std::thread> m_commSendThread = nullptr;
-	std::shared_ptr<std::thread> m_commRecieveThread = nullptr;
+	std::shared_ptr<std::thread> m_commUdpSendThread = nullptr;
+	std::shared_ptr<std::thread> m_commUdpRecieveThread = nullptr;
+	std::shared_ptr<std::thread> m_commTcpSendThread = nullptr;
+	std::shared_ptr<std::thread> m_commTcpRecieveThread = nullptr;
 	
 	std::map<std::string, ConnectionInfo> m_detectedLobbies;
 

@@ -47,5 +47,7 @@ int main(int argc, char * argv[])
 		app->Render();
 	}
 
+	app->closing = true;
+
 	return 0;
 }

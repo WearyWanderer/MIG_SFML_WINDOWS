@@ -26,10 +26,11 @@ public:
 
 	Player* AddPlayer(int uniquePlayerID, float x, float y, std::pair<sf::Texture, sf::Rect<int>>* animTexture);
 	void RemovePlayer(int uniquePlayerID);
-	Player GetLocalPlayerCopy() { return Player(*m_localPlayer); }
+	Player GetLocalPlayerCopy() { return *m_localPlayer; }
 
 	//Local user actions within the world
 	void MovePlayer(PlayerState state);
+	void MovePlayer(int playerID, PlayerState state);
 
 private:
 	std::vector<Player*> m_players;
