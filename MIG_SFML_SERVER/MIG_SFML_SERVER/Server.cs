@@ -57,6 +57,10 @@ namespace SERVER
             Thread connectionThread = new Thread(new ThreadStart(server.ListenForClients));
             connectionThread.Name = "ListenerThread";
             connectionThread.Start();
+
+            Thread dispatcherThread = new Thread(new ThreadStart(server.StartDispatcherThread));
+            dispatcherThread.Name = "DispatcherThread";
+            dispatcherThread.Start();
         }
     }
 }

@@ -24,7 +24,7 @@
 #define WIDTH 1360
 #define HEIGHT 768
 
-#define BUFFSIZE 256
+#define BUFFSIZE 512
 
 //The layers used for rendering order, as well as for collision objects
 enum GameLayers

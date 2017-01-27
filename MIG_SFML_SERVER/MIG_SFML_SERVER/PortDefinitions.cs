@@ -11,7 +11,9 @@ namespace SERVER
     static class PortDefinitions
     {
         public static int UDP_BROADCAST_PORT = 8080,
-                   TCP_CONNECT_PORT = 8080;
+                          TCP_CONNECT_PORT = 8080;
+
+        public const int MAXBUFFSIZE = 512;
 
         public static string GetLocalIP()
         {
@@ -25,5 +27,21 @@ namespace SERVER
 
             return localIP;
         }
-    }
+    };
+
+    public class Pair<T, U>
+    {
+        public Pair()
+        {
+        }
+
+        public Pair(T first, U second)
+        {
+            this.First = first;
+            this.Second = second;
+        }
+
+        public T First { get; set; }
+        public U Second { get; set; }
+    };
 }

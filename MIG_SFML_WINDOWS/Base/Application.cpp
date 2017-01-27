@@ -3,7 +3,7 @@
 Application::Application()
 {
 	srand(time(NULL));
-	m_window.create(sf::VideoMode(WIDTH, HEIGHT), "Multiplayer ICA2 Prototype");
+	m_window.create(sf::VideoMode(WIDTH, HEIGHT), "Multiplayer ICA2 Prototype", sf::Style::Titlebar | sf::Style::Close);
 	m_gui.setWindow(m_window);
 	m_menu = std::make_shared<MainMenu>(&m_gui, &m_window);
 	m_state = std::make_shared<StateManager>();
@@ -26,7 +26,8 @@ void Application::Init()
 //Apply network related stuff here, consume any packets or messages that we need to
 void Application::Update()
 {
-	m_input->KeyboardInput();
+	if(m_window.hasFocus())
+		m_input->KeyboardInput();
 
 	sf::Event event;
 	while (m_window.pollEvent(event))

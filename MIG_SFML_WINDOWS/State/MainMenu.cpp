@@ -170,6 +170,7 @@ void MainMenu::AttemptJoinLobby()
 
 	if (!(list->getSelectedItemId() == "Title") && list->getSelectedItem() != "")
 	{
+		Application::instance()->StateSystem()->SwitchScene(LOADING_SCREEN);
 		Application::instance()->Client()->AttemptConnection(list->getSelectedItem());
 	}
 }
@@ -192,6 +193,7 @@ void MainMenu::InitHosting()
 
 	if (Application::instance()->Client()->LaunchServerApplication(lobbyName, lobbyPass))
 	{
+		Sleep(100);
 		Application::instance()->SetHost();
 		Application::instance()->Client()->AttemptLocalConnection();
 		Application::instance()->StateSystem()->SwitchScene(LOADING_SCREEN);

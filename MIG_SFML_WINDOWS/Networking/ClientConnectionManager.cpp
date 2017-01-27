@@ -8,29 +8,83 @@ ClientConnectionManager::ClientConnectionManager()
 
 ClientConnectionManager::~ClientConnectionManager()
 {
+	if (m_commSendThread != nullptr)
+	{
+		m_tcpCommSocket.send("disconnect;", (size_t)sizeof("disconnect;"));
+		m_tcpCommSocket.disconnect();
+		m_udpCommSocket.unbind();
+	}
 }
 
-std::shared_ptr<std::thread> ClientConnectionManager::StartSendingPlayerData()
+void ClientConnectionManager::StartClientCommunication()
 {
 	//start the thread which will send player data via the udp connection
-	m_commThread = std::make_shared<std::thread>(&ClientConnectionManager::SendPlayerPosition, this);
-	m_commThread->detach();
+	m_commSendThread = std::make_shared<std::thread>(&ClientConnectionManager::SendData, this);
+	m_commSendThread->detach();
 
-	return m_commThread;
+	//start the thread which will recieve player data via the UDP and TCP connections
+	m_commRecieveThread = std::make_shared<std::thread>(&ClientConnectionManager::RecieveData, this);
+	m_commRecieveThread->detach();
 }
 
-void ClientConnectionManager::SendPlayerPosition()
+void ClientConnectionManager::SendData()
 {
 	Player localPlayerCopy = Application::instance()->WorldSystem()->GetLocalPlayerCopy();
 	while (Application::instance()->StateSystem()->getCurrentScene() == GAME_LOOP)
 	{
-		if ((m_flags & ARTIFICIAL_LATENCY) == ARTIFICIAL_LATENCY)
+		//send our positional data in a packet here with the 'position' and 'playerID'
+		SendPlayerPosition(&localPlayerCopy);
+
+
+
+	}
+}
+
+//curently does not catch paritally complete or partially sent messages, need a nice packet structure to do this instead
+void ClientConnectionManager::RecieveData()
+{
+	while (Application::instance()->StateSystem()->getCurrentScene() == GAME_LOOP)
+	{
+		char tcpData[BUFFSIZE];
+		size_t recieved;
+		m_tcpCommSocket.receive(tcpData, BUFFSIZE, recieved);
+
+		std::string recievedMsg(tcpData, recieved);
+		std::cout << recievedMsg << std::endl;
+
+		std::string initMsg(tcpData, recieved);
+		std::string delimiter(";");
+		std::list<std::string> tokens = split(initMsg, ";");
+
+		while (!tokens.empty())
 		{
-			//some sort of simple tiny delay here where we just sleep so we don't send the packets very often
+			if (tokens.front() == "addplayer")
+			{
+				tokens.pop_front();
+				int playerID = std::stoi(tokens.front());
+				tokens.pop_front();
+				Application::instance()->WorldSystem()->AddPlayer(playerID, std::stof(tokens.front()), HEIGHT, TexturesSingleton::instance()->m_playerTextures.getAnimatedTexture("p1walkcyclesheet"));
+				tokens.pop_front();
+			}
+			else if (tokens.front() == "disconnected")
+			{
+				tokens.pop_front();
+				Application::instance()->WorldSystem()->RemovePlayer(std::stoi(tokens.front()));
+				tokens.pop_front();
+			}
 		}
 
+	}
+}
 
-		//send our positional data in a packet here with the 'position' and 'playerID'
+void ClientConnectionManager::SendPlayerPosition(Player* playerCopy)
+{
+	if (playerCopy->GetPlayerState() != PLAYER_IDLE)
+	{
+		if ((m_flags & ARTIFICIAL_LATENCY) == ARTIFICIAL_LATENCY)
+		{
+			//send pos data at a delay
+		}
 	}
 }
 
@@ -114,12 +168,6 @@ bool ClientConnectionManager::AttemptConnection(std::string lobbyKey)
 		// error...
 	}
 
-	//char data[15] = "requestspawn";
-	//if (m_tcpCommSocket.send(data, 15) != sf::Socket::Done)
-	//{
-	//	// error...
-	//}
-
 	char registerPacket[MAXBUFFSIZE];
 	size_t recieved;
 	if (m_tcpCommSocket.receive(registerPacket, MAXBUFFSIZE, recieved) != sf::Socket::Done)
@@ -127,25 +175,31 @@ bool ClientConnectionManager::AttemptConnection(std::string lobbyKey)
 
 	}
 
-	std::cout << registerPacket << std::endl;
+	std::string initMsg(registerPacket, recieved);
+	std::string delimiter(";");
+	std::string token;
+	token = initMsg.substr(0, initMsg.find(delimiter));
+	initMsg.erase(0, initMsg.find(delimiter) + delimiter.length());
+
+	//first one is uniqueplayerid
+	unsigned int playerID = std::stoul(token);
+	float xPos = std::stof(initMsg);
+	Application::instance()->WorldSystem()->Init(playerID, xPos, HEIGHT);
+
+	Application::instance()->StateSystem()->SwitchScene(GAME_LOOP);
+	StartClientCommunication();
 
 	return true;
 }
 
 bool ClientConnectionManager::AttemptLocalConnection()
 {
-	sf::Socket::Status status = m_tcpCommSocket.connect(sf::IpAddress::LocalHost, 8080);
+	sf::Socket::Status status = m_tcpCommSocket.connect(m_tcpCommSocket.getRemoteAddress(), 8080);
 
 	if (status != sf::Socket::Done)
 	{
 		// error...
 	}
-
-	//char data[15] = "requestspawn";
-	//if (m_tcpCommSocket.send(data, 15) != sf::Socket::Done)
-	//{
-		// error...
-	//}
 
 	char registerPacket[MAXBUFFSIZE];
 	size_t recieved;
@@ -154,7 +208,19 @@ bool ClientConnectionManager::AttemptLocalConnection()
 
 	}
 
-	std::cout << registerPacket << std::endl;
+	std::string initMsg(registerPacket, recieved);
+	std::string delimiter(";");
+	std::string token;
+	token = initMsg.substr(0, initMsg.find(delimiter));
+	initMsg.erase(0, initMsg.find(delimiter) + delimiter.length());
+
+	//first one is uniqueplayerid
+	unsigned int playerID = std::stoul(token);
+	float xPos = std::stof(initMsg);
+	Application::instance()->WorldSystem()->Init(playerID, xPos, HEIGHT);
+
+	Application::instance()->StateSystem()->SwitchScene(GAME_LOOP);
+	StartClientCommunication();
 
 	return true;
 }

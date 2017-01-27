@@ -38,10 +38,12 @@ public:
 
 #pragma region Thread Starters
 	std::shared_ptr<std::thread> BroadcastLobbySearch();
-	std::shared_ptr<std::thread> StartSendingPlayerData();
+	void StartClientCommunication();
 #pragma endregion
 
-	void SendPlayerPosition();
+	void SendData();
+	void RecieveData();
+	void SendPlayerPosition(Player* playerCopy);
 	void ProcessLobbyResponses();
 	bool AttemptConnection(std::string lobbyKey);
 	bool AttemptLocalConnection();
@@ -51,6 +53,21 @@ public:
 	inline void SetDevFlags(unsigned char flags) { m_flags = flags; }
 	inline unsigned char GetDevFlags() { return m_flags; }
 
+	inline std::list<std::string> split(const std::string& str, const std::string& delim)
+	{
+		std::list<std::string> tokens;
+		size_t prev = 0, pos = 0;
+		do
+		{
+			pos = str.find(delim, prev);
+			if (pos == std::string::npos) pos = str.length();
+			std::string token = str.substr(prev, pos - prev);
+			if (!token.empty()) tokens.push_back(token);
+			prev = pos + delim.length();
+		} while (pos < str.length() && prev < str.length());
+		return tokens;
+	}
+
 protected:
 	sf::UdpSocket m_broadcastSocket;
 	sf::UdpSocket m_udpCommSocket;
@@ -58,9 +75,10 @@ protected:
 	
 	unsigned int m_portNum;
 
-	std::shared_ptr<std::thread> m_broadcastThread;
-	std::shared_ptr<std::thread> m_commThread;
-
+	std::shared_ptr<std::thread> m_broadcastThread = nullptr;
+	std::shared_ptr<std::thread> m_commSendThread = nullptr;
+	std::shared_ptr<std::thread> m_commRecieveThread = nullptr;
+	
 	std::map<std::string, ConnectionInfo> m_detectedLobbies;
 
 	unsigned int m_lobbysFound = 0;

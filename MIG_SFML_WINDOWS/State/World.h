@@ -19,11 +19,13 @@ public:
 	World(sf::RenderWindow* window);
 	~World();
 
-	void Init() override;
+	void Init() override {};
+	void Init(int playerID, int xPos, int yPos);
 	void Simulate(float deltaTime) override;
 	void Render() override;
 
-	void AddPlayer(int uniquePlayerID, float x, float y, std::pair<sf::Texture, sf::Rect<int>>* animTexture);
+	Player* AddPlayer(int uniquePlayerID, float x, float y, std::pair<sf::Texture, sf::Rect<int>>* animTexture);
+	void RemovePlayer(int uniquePlayerID);
 	Player GetLocalPlayerCopy() { return Player(*m_localPlayer); }
 
 	//Local user actions within the world

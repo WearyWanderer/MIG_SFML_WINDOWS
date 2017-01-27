@@ -8,9 +8,11 @@ using System.Threading.Tasks;
 
 namespace SERVER
 {
+    
     class Client
     {
         public int uniquePlayerID; //this won't just simply increment eventually due to disconnects and reconnects but will distribute a number that is not currently in the dictionary
+        public Pair<float, float> playerCurrentPos;
 
         //network variables
         public IPEndPoint udpEP;
@@ -18,13 +20,16 @@ namespace SERVER
         public UdpClient udp;
         public int udpPort;
 
-        public Client(Socket tcpSock, UdpClient udpSock, int port, IPEndPoint ep, int id)
+        public byte[] buffer = new byte[PortDefinitions.MAXBUFFSIZE];
+
+        public Client(Socket tcpSock, UdpClient udpSock, int port, IPEndPoint ep, int id, float x, float y)
         {
             tcp = tcpSock;
             udp = udpSock;
             udpEP = ep;
             udpPort = port;
             uniquePlayerID = id;
+            playerCurrentPos = new Pair<float, float>(x, y);
 
             Console.WriteLine("Client Added: TCP {0}, UDP port {1}", tcp.RemoteEndPoint, udpPort);
         }

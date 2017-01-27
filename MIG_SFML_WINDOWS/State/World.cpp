@@ -5,9 +5,6 @@
 World::World(sf::RenderWindow* window)
 {
 	m_window = window;
-	AddPlayer(0, WIDTH / 2, HEIGHT, TexturesSingleton::instance()->m_playerTextures.getAnimatedTexture("p1walkcyclesheet"));
-	//TEMP
-	m_localPlayer = m_players[0];
 }
 
 
@@ -17,14 +14,21 @@ World::~World()
 	//	delete(i);
 }
 
-void World::AddPlayer(int uniquePlayerID, float x, float y, std::pair<sf::Texture, sf::Rect<int>>* animTexture)
+Player* World::AddPlayer(int uniquePlayerID, float x, float y, std::pair<sf::Texture, sf::Rect<int>>* animTexture)
 {
-	m_players.push_back(new Player(x, y, animTexture));
+	m_players.push_back(new Player(uniquePlayerID, x, y, animTexture));
+	return m_players.at(m_players.size() - 1);
 }
 
-void World::Init() 
+void World::RemovePlayer(int uniquePlayerID)
 {
+	m_players.erase(std::remove_if(m_players.begin(), m_players.end(), [uniquePlayerID](Player *obj) {return obj->GetPlayerID() == uniquePlayerID; }), m_players.end());
+}
 
+void World::Init(int playerID, int xPos, int yPos) 
+{
+	m_localPlayer = AddPlayer(playerID, xPos, yPos, TexturesSingleton::instance()->m_playerTextures.getAnimatedTexture("p1walkcyclesheet"));
+	std::cout << "Successfully connected to lobby, our uniquePlayerID is " << playerID << std::endl;
 }
 
 void World::Simulate(float deltaTime)

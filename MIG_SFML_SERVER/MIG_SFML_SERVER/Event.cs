@@ -9,11 +9,21 @@ namespace SERVER
     enum EventType
     {
         POSITION_UPDATE,
+        REQUEST_LOAD_PLAYERS,
+        NEW_CONNECT,
         DISCONNECT,
         KICK_TIMEOUT,
         KICK_LATENCY
     }
     class Event
     {
+        public EventType type;
+        public int originPlayerID;
+
+        public Event(EventType eventToBeHandled, int playerSendingEvent)
+        {
+            type = eventToBeHandled;
+            originPlayerID = playerSendingEvent;
+        }
     }
 }
