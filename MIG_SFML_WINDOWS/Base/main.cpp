@@ -13,13 +13,14 @@ int main(int argc, char * argv[])
 	std::cout << execPath << std::endl;
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #elif __APPLE__
-
+    std::string execPath = argv[0];
+    execPath.erase(execPath.end() - 15, execPath.end());
+    std::cout << execPath << std::endl;
 #endif
-
+    
+    
 	Application* app = Application::instance();
-#ifdef _WIN32
 	app->SetAppPath(execPath);
-#endif
     
 	app->Init();
 

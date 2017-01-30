@@ -189,7 +189,7 @@ void ClientConnectionManager::ProcessLobbyResponses()
 			//error
 		}
 #ifdef DEBUG
-		std::cout << "Recieved " << recieved << " bytes from " << sender << " on port " << port << std::endl;
+		//std::cout << "Recieved " << recieved << " bytes from " << sender << " on port " << port << std::endl;
 #endif // DEBUG
 
 		if (!(sender.toInteger() == 0 && port == 0))
@@ -263,11 +263,12 @@ bool ClientConnectionManager::AttemptConnection(std::string lobbyKey)
 
 bool ClientConnectionManager::AttemptLocalConnection()
 {
-	sf::Socket::Status status = m_tcpCommSocket.connect(sf::IpAddress::LocalHost, 8080);
+    std::cout << m_tcpCommSocket.getLocalPort() << std::endl;
+    sf::Socket::Status status = m_tcpCommSocket.connect(sf::IpAddress::getLocalAddress(), 8080);
 
 	if (status != sf::Socket::Done)
 	{
-		// error...
+		std::cerr << "Error in locally connecting to tcp!" << std::endl;
 	}
 
 	char registerPacket[MAXBUFFSIZE];
@@ -290,12 +291,18 @@ bool ClientConnectionManager::AttemptLocalConnection()
 
 	m_portNum = udpServerPort;
 
-	status = m_udpCommSocket.bind(sf::Socket::AnyPort, sf::IpAddress::LocalHost);
+    status = m_udpCommSocket.bind(sf::Socket::AnyPort, sf::IpAddress::getLocalAddress());
 
 	if (status != sf::Socket::Done)
 	{
 		std::cerr << "Error in binding to udp!" << std::endl;
 	}
+    
+    //recieved our acceptance packet, send the port we're going to listen on udp
+    std::string portNum = "lp;" + std::to_string(m_udpCommSocket.getLocalPort()) + ";ep;";
+    const char* port = portNum.c_str();
+    
+    m_udpCommSocket.send(port, portNum.length(), sf::IpAddress::getLocalAddress(), m_portNum);
 
 	Application::instance()->WorldSystem()->Init(playerID, xPos, HEIGHT);
 	Application::instance()->StateSystem()->SwitchScene(GAME_LOOP);
@@ -306,17 +313,17 @@ bool ClientConnectionManager::AttemptLocalConnection()
 
 bool ClientConnectionManager::LaunchServerApplication(std::string lobbyName, std::string password)
 {
-	std::string execPath = "\"" + Application::instance()->GetAppPath() + "MIG_SFML_SERVER.exe\"";
-	//need to add quotations at either side here
-	execPath.append(" \"");
-	execPath.append(lobbyName);
-	execPath.append("\" \"");
-	execPath.append(password);
-	execPath.append("\"");
-
-	std::cout << execPath << std::endl;
-
 #ifdef _WIN32
+    std::string execPath = "\"" + Application::instance()->GetAppPath() + "MIG_SFML_SERVER.exe\"";
+    //need to add quotations at either side here
+    execPath.append(" \"");
+    execPath.append(lobbyName);
+    execPath.append("\" \"");
+    execPath.append(password);
+    execPath.append("\"");
+    
+    std::cout << execPath << std::endl;
+    
 	// additional information
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
@@ -344,13 +351,19 @@ bool ClientConnectionManager::LaunchServerApplication(std::string lobbyName, std
 	
 	//system(execPath.c_str());
 #elif __APPLE__
+    std::string execPath = Application::instance()->GetAppPath();
+    std::string execComm = "/Library/Frameworks/Mono.framework/Commands/mono " + execPath + "migsfmlservermac.exe " + lobbyName + " " + password + " &";
+    
+    system(execComm.c_str());
+    
 //	pid_t processId;
 //
 //	if ((processId = fork()) == 0) 
 //	{
-//		char app[] = "DETERMINED PATH NEEDED HERE ANDY";
-//		char * const argv[] = { app, lobbyName, password };
-//		if (execv(app, argv) < 0) 
+//        std::string execComm = "/Library/Frameworks/Mono.framework/Commands/mono " + execPath + "migsfmlservermac.exe";
+//		const char * argv[] = { execComm.c_str(), lobbyName.c_str(), password.c_str() };
+//        
+//		if (execve(execComm.c_str(), NULL, NULL) < 0)
 //		{
 //			perror("execv error");
 //		}
@@ -360,6 +373,8 @@ bool ClientConnectionManager::LaunchServerApplication(std::string lobbyName, std
 //		perror("fork error");
 //		return false;
 //	}
+    
+    sleep(2);
 #endif
 
 	return true;

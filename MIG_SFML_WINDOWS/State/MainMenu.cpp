@@ -196,7 +196,6 @@ void MainMenu::InitHosting()
 		//Sleep(100);
 		Application::instance()->SetHost();
 		Application::instance()->Client()->AttemptLocalConnection();
-		Application::instance()->StateSystem()->SwitchScene(LOADING_SCREEN);
 	}
 
 }
