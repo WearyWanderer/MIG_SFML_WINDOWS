@@ -41,6 +41,8 @@ namespace SERVER
             }
         }
 
+        public int numPlayersActive = 0;
+
         public void InitServer(string lobbyName, string password)
         {
             Console.WriteLine("Starting Server...");
@@ -61,6 +63,10 @@ namespace SERVER
             Thread dispatcherThread = new Thread(new ThreadStart(server.StartDispatcherThread));
             dispatcherThread.Name = "DispatcherThread";
             dispatcherThread.Start();
+
+            Thread syncThread = new Thread(new ThreadStart(server.SyncMaintenance));
+            syncThread.Name = "SyncThread";
+            syncThread.Start();
         }
     }
 }

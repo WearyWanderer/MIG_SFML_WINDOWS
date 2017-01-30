@@ -1,5 +1,7 @@
 ﻿using System; // For Console, Int32, ArgumentException, Environment
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Net; // For IPAddress
 using System.Net.Sockets; // For TcpListener, TcpClient
 using System.Text;
@@ -9,6 +11,7 @@ namespace SERVER
 {
     class ReactorListenerServer
     {
+        double syncrefreshRate = 0.5; //
         //client tracking
         Dictionary<int, Client> clients = new Dictionary<int, Client>();
         int clientNum = 0;
@@ -16,6 +19,15 @@ namespace SERVER
         AutoResetEvent wait = new AutoResetEvent(false);
         Queue<Event> eventQueue = new Queue<Event>();
 
+        public void SyncMaintenance()
+        {
+            Stopwatch sw = Stopwatch.StartNew();
+            while(true) //run forever
+            {
+                
+                sw.Restart();
+            }
+        }
 
         public void ListenForClients()
         {
@@ -47,7 +59,7 @@ namespace SERVER
         public void AcceptClient(IAsyncResult ar)
         {
             wait.Set(); //set our wait handle to ensure sync and don't gobble up memory!
-            Random rand = new Random(clientNum);
+            Random rand = new Random(Guid.NewGuid().GetHashCode() + clientNum);
 
             //tcp client creation
             Socket listener = (Socket)ar.AsyncState;
@@ -69,6 +81,7 @@ namespace SERVER
             eventQueue.Enqueue(new Event(EventType.NEW_CONNECT, clientNum));
 
             clientNum++;
+            Server.Instance.numPlayersActive++;
         }
 
         public void StartDispatcherThread()
@@ -87,9 +100,18 @@ namespace SERVER
         {
             clients.Add(clientNum, clientToAdd);
 
-            //send back a registration packet
-            //TODO - make gen a random position on X, also send back the udp port we're listening on
-            byte[] msg = Encoding.ASCII.GetBytes(clientNum.ToString() + ";" + clientToAdd.playerCurrentPos.First + ";" + clientToAdd.udpPort + ";ep;");
+            //send back a simply encrypted with bitwise XOR registration packet
+            //
+            string password = "";
+            //if (Server.Instance.LobbyPassword != "")
+            //{
+            //    password = Server.Instance.LobbyPassword;
+            //    EncryptString(ref password);
+            //}
+            string msgToSend = clientNum.ToString() + ";" + clientToAdd.playerCurrentPos.First + ";" + clientToAdd.udpPort + ((password == "") ? password + ";ep;" : ";ep;");
+            EncryptString(ref msgToSend);
+
+            byte[] msg = Encoding.ASCII.GetBytes(msgToSend);
 
             clientToAdd.tcp.Send(msg);
         }
@@ -100,21 +122,48 @@ namespace SERVER
             string msg = System.Text.Encoding.UTF8.GetString(clientInfo.buffer);
             if (msg.Length != 0)
             {
-                string typeMsg = "";
+                Queue<string> tokens;
                 try
                 {
-                    typeMsg = msg.Substring(0, msg.IndexOf(';'));
+                    tokens = split(msg, ";");
+                    string eventToken = tokens.Dequeue();
+
+                    if(!clientInfo.passedPassword) //if the player hasn't yet passed the password we need to either ensure that there is a password to pass and that this is their first response, or kick them
+                    {
+                        if (Server.Instance.LobbyPassword != "")
+                        {
+                            if (eventToken == Server.Instance.LobbyPassword)
+                                clients[clientInfo.uniquePlayerID].passedPassword = true;
+                            else
+                                eventQueue.Enqueue(new Event(EventType.KICK_PASSWRONG, clientInfo.uniquePlayerID));
+                        }
+                    }
+
+                    //lets first check we aren't disconnecting, if we are we neednt waste more time on this client
+                    //TODO - could improve this by making a string to event enum parse and switch statement here but man I'm running low on time, foxus on marking criteria
+                    if (eventToken == "dp")
+                    {
+                        Console.WriteLine("Client {0} disconnecting, notifying active players...", clientInfo.udpEP.ToString());
+                        eventQueue.Enqueue(new Event(EventType.DISCONNECT, clientInfo.uniquePlayerID));
+                    }
+                    if (eventToken == "sd" && clientInfo.host)
+                    {
+                        eventQueue.Enqueue(new Event(EventType.KICK_SERVER_SHUTDOWN, clientInfo.uniquePlayerID));
+                    }
+                    if (eventToken == "ah")
+                    {
+                        Console.WriteLine("Being hosted by a client, will shutdown when client closes...");
+                        clients[clientInfo.uniquePlayerID].host = true;
+                    }
                 }
                 catch(ArgumentOutOfRangeException e)
                 {
                     Console.WriteLine("Couldn't parse a message!");
-                }
 
-                //lets first check we aren't disconnecting, if we are we neednt waste more time on this client
-                if (typeMsg == "dp")
-                {
-                    Console.WriteLine("Client {0} disconnecting, notifying active players...", clientInfo.udpEP.ToString());
-                    eventQueue.Enqueue(new Event(EventType.DISCONNECT, clientInfo.uniquePlayerID));
+                    if (clientInfo.host)
+                        eventQueue.Enqueue(new Event(EventType.KICK_SERVER_SHUTDOWN, clientInfo.uniquePlayerID)); //because we had a faulty message from the localhost which is reliably connected, we'll assume it was a shutdown for now and shut down our server
+                    else
+                        eventQueue.Enqueue(new Event(EventType.DISCONNECT, clientInfo.uniquePlayerID)); //otherwise lets assume disconnect of another player for now (eventually we could kick people for too many garbled messages as potential hackers
                 }
             }
         }
@@ -142,6 +191,7 @@ namespace SERVER
                     else if (token == "mp")
                     {
                         clients[clientInfo.uniquePlayerID].state = (PlayerState)Convert.ToInt32(tokens.Dequeue());
+                        clients[clientInfo.uniquePlayerID].playerCurrentPos.First = float.Parse(tokens.Dequeue());
                         eventQueue.Enqueue(new Event(EventType.POSITION_UPDATE, clientInfo.uniquePlayerID));
                     }
                 }
@@ -167,6 +217,18 @@ namespace SERVER
                 prev = pos + delim.Length;
             } while (pos < str.Length && prev < str.Length);
             return tokens;
+        }
+
+        public void EncryptString(ref string stringToEncrypt)
+        {
+            StringBuilder strBuilder = new StringBuilder(stringToEncrypt);
+            char encryptKey = 's';
+            for(int i = 0; i < stringToEncrypt.Length; ++i)
+            {
+                strBuilder[i] ^= encryptKey;
+            }
+
+            stringToEncrypt = strBuilder.ToString();
         }
     }
 }

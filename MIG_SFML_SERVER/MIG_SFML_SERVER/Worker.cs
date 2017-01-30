@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -46,7 +47,7 @@ namespace SERVER
                         {
                             Console.Write("Error dispatching task: ", e.Message);
                         }
-
+                        Server.Instance.numPlayersActive--;
                         
                         break;
                     }
@@ -102,7 +103,8 @@ namespace SERVER
                                 {
                                     byte[] dgram = Encoding.ASCII.GetBytes("mp;"
                                                                             + clientLoading.uniquePlayerID + ";"
-                                                                            + (int)clientLoading.state + ";ep;");
+                                                                            + (int)clientLoading.state + ";"
+                                                                            + clientLoading.playerCurrentPos.First + ";ep;");
                                     c.Value.udp.Send(dgram, dgram.Length, c.Value.udpEP);
                                 }
                             }
@@ -121,6 +123,42 @@ namespace SERVER
                 case EventType.KICK_TIMEOUT:
                     {
 
+                        break;
+                    }
+                case EventType.KICK_SERVER_SHUTDOWN:
+                    {
+                        try
+                        {
+                            Console.WriteLine("Host closed game, shutting down server & notifying peers...");
+                            foreach (KeyValuePair<int, Client> c in task.clients)
+                            {
+                               byte[] dgram = Encoding.ASCII.GetBytes("sd;ep;"); //server shutdown warning, allow the client to free up ports and go to a message screen to rejoin another lobby
+                               c.Value.udp.Send(dgram, dgram.Length, c.Value.udpEP);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Console.Write("Error dispatching task: ", e.Message);
+                        }
+
+                        Process.GetCurrentProcess().Kill();
+                        break;
+                    }
+                case EventType.KICK_PASSWRONG:
+                    {
+                            Client clientLoading;
+                            try
+                            {
+                                task.clients.TryGetValue(task.task.originPlayerID, out clientLoading);
+                                clientLoading.tcp.Send(Encoding.ASCII.GetBytes("passfail;ep;"));
+                                clientLoading.tcp.Close();
+                                clientLoading.udp.Close();
+                                task.clients.Remove(task.task.originPlayerID);
+                            }
+                            catch (ArgumentNullException e)
+                            {
+                                Console.Write("Error dispatching task: ", e.Message);
+                            }
                         break;
                     }
             }

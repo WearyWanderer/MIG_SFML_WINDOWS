@@ -28,6 +28,10 @@ namespace SERVER
         public Socket tcp;
         public UdpClient udp;
         public int udpPort;
+        public long timeSinceLastSyncRequest = 0;
+
+        public bool host = false;
+        public bool passedPassword = false;
 
         public byte[] buffer = new byte[PortDefinitions.MAXBUFFSIZE];
 

@@ -51,6 +51,10 @@ int main(int argc, char * argv[])
 	}
 
 	app->closing = true;
+	if (app->IsHost())
+	{
+		app->Client()->SendTcpShutdown();
+	}
 
 	return 0;
 }

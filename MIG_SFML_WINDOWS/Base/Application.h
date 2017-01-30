@@ -69,6 +69,7 @@ public:
 	inline void SetAppPath(std::string appPath) { m_appPath = appPath; }
 	inline std::string GetAppPath() { return m_appPath; }
 	inline void SetHost() { m_host = true; }
+	inline bool IsHost() { return m_host; }
 
 	bool closing = false;
 protected:

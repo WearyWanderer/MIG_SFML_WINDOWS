@@ -13,7 +13,9 @@ namespace SERVER
         NEW_CONNECT,
         DISCONNECT,
         KICK_TIMEOUT,
-        KICK_LATENCY
+        KICK_LATENCY,
+        KICK_SERVER_SHUTDOWN,
+        KICK_PASSWRONG
     }
     class Event
     {

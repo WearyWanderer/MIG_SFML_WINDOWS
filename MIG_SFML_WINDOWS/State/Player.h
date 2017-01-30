@@ -26,7 +26,7 @@ public:
 		m_sprite.setOrigin(m_sprite.getTextureRect().width / 2, m_sprite.getTextureRect().height);
 		srand(uniquePlayerID);
 
-		sf::Color randCol = sf::Color(rand() % 201, rand() % 201, rand() % 201, 255);
+		sf::Color randCol = sf::Color(rand() % 171, rand() % 211, rand() % 181, 255);
 		m_sprite.setColor(randCol);
 	};
 	~Player();

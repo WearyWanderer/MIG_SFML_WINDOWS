@@ -32,7 +32,7 @@ namespace SERVER
                     Ping ping = new Ping();
                     PingReply reply = ping.Send(groupEP.Address);
                     
-                    Byte[] msg = Encoding.ASCII.GetBytes(Server.Instance.LobbyName + " " + Server.Instance.LobbyPassword + " " + reply.RoundtripTime.ToString() + "ms");
+                    Byte[] msg = Encoding.ASCII.GetBytes(Server.Instance.LobbyName + ",      " + Server.Instance.numPlayersActive + "players,       " + reply.RoundtripTime.ToString() + "ms");
 
                     // The client will get our IP Address here
                     listener.Send(msg, msg.Length, groupEP);

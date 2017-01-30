@@ -16,8 +16,21 @@ ClientConnectionManager::~ClientConnectionManager()
 	}
 }
 
+void ClientConnectionManager::SendTcpShutdown()
+{
+	m_tcpCommSocket.setBlocking(true);
+	std::string msg = "sd;ep;";
+	m_tcpCommSocket.send(msg.c_str(), msg.length());
+}
+
 void ClientConnectionManager::StartClientCommunication()
 {
+	//if (Application::instance()->IsHost())
+	//{
+	//	std::string msg = "ah;ep;";
+	//	m_tcpCommSocket.send(msg.c_str(), msg.length());
+	//}
+
 	//start the thread which will send player data via the udp connection
 	m_commUdpSendThread = std::make_shared<std::thread>(&ClientConnectionManager::SendUdpData, this);
 	m_commUdpSendThread->detach();
@@ -119,6 +132,8 @@ void ClientConnectionManager::RecieveUdpData()
 				tokens.pop_front();
 				int playerState = std::stoi(tokens.front());
 				tokens.pop_front();
+				float xPos = std::stof(tokens.front());
+				Application::instance()->WorldSystem()->MovePlayer(playerID, xPos);
 				Application::instance()->WorldSystem()->MovePlayer(playerID, (PlayerState)playerState);
 				tokens.pop_front();
 			}
@@ -136,7 +151,7 @@ void ClientConnectionManager::SendPlayerPosition(Player* playerCopy)
 			
 		}
 
-		std::string playPosMsg = "mp;" + std::to_string((int)playerCopy->GetPlayerState()) + ";ep;";
+		std::string playPosMsg = "mp;" + std::to_string((int)playerCopy->GetPlayerState()) + ";" + std::to_string(playerCopy->getPlayerPos().x) +";ep;";
 		const char* data = playPosMsg.c_str();
 		m_udpCommSocket.send(data, playPosMsg.length(), m_tcpCommSocket.getRemoteAddress(), m_portNum);
 }
@@ -162,7 +177,13 @@ std::shared_ptr<std::thread> ClientConnectionManager::BroadcastLobbySearch()
 	sf::IpAddress address;
 	address = sf::IpAddress::getLocalAddress();
 
+#ifdef _WIN32
+	strcpy_s(data, address.toString().c_str());
+#elif __APPLE__
 	strcpy(data, address.toString().c_str());
+#endif // _WIN32
+
+	
 	
 	m_broadcastSocket.send(data, 100, sf::IpAddress::Broadcast, 8080);
 
@@ -229,6 +250,13 @@ bool ClientConnectionManager::AttemptConnection(std::string lobbyKey)
 	}
 
 	std::string initMsg(registerPacket, recieved);
+	std::cout << "Recieved encrypted packet: " << initMsg << std::endl;
+	//decrypt this secured accept packet
+	for (int i = 0; i < initMsg.size(); ++i)
+		initMsg[i] ^= 's';
+
+	std::cout << "Decrypt resolved to: " << initMsg << std::endl;
+
 	std::string delimiter(";");
 	std::list<std::string> tokens = split(initMsg, ";");
 
@@ -238,6 +266,12 @@ bool ClientConnectionManager::AttemptConnection(std::string lobbyKey)
 	float xPos = std::stof(tokens.front());
 	tokens.pop_front();
 	int udpServerPort = std::stoi(tokens.front());
+	tokens.pop_front();
+
+	if (tokens.size() == 2) //password handle
+	{
+
+	}
 
 	m_portNum = udpServerPort;
 
@@ -279,6 +313,14 @@ bool ClientConnectionManager::AttemptLocalConnection()
 	}
 
 	std::string initMsg(registerPacket, recieved);
+
+	std::cout << "Recieved encrypted packet: " << initMsg << std::endl;
+	//decrypt this secured accept packet
+	for (int i = 0; i < initMsg.size(); ++i)
+		initMsg[i] ^= 's';
+
+	std::cout << "Decrypt resolved to: " << initMsg << std::endl;
+
 	std::string delimiter(";");
 	std::list<std::string> tokens = split(initMsg, ";");
 
@@ -288,6 +330,12 @@ bool ClientConnectionManager::AttemptLocalConnection()
 	float xPos = std::stof(tokens.front());
 	tokens.pop_front();
 	int udpServerPort = std::stoi(tokens.front());
+	tokens.pop_front();
+
+	if (tokens.size() == 2) //there's a password needed, do something here
+	{
+
+	}
 
 	m_portNum = udpServerPort;
 

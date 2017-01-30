@@ -86,3 +86,12 @@ void World::MovePlayer(int playerID, PlayerState state)
 			i->SetPlayerState(state);
 	}
 }
+
+void World::MovePlayer(int playerID, float x)
+{
+	for (Player* i : m_players)
+	{
+		if (i->GetPlayerID() == playerID)
+			i->m_sprite.setPosition(x, i->m_sprite.getPosition().y);
+	}
+}

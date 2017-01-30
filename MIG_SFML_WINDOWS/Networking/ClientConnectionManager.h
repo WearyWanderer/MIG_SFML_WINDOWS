@@ -70,6 +70,8 @@ public:
 		return tokens;
 	}
 
+	void SendTcpShutdown();
+
 protected:
 	sf::UdpSocket m_broadcastSocket;
 	sf::UdpSocket m_udpCommSocket;

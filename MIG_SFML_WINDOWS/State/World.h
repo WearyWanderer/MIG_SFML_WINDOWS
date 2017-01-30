@@ -26,6 +26,7 @@ public:
 	//Local user actions within the world
 	void MovePlayer(PlayerState state);
 	void MovePlayer(int playerID, PlayerState state);
+	void MovePlayer(int playerID, float x);
 
 private:
 	std::vector<Player*> m_players;
