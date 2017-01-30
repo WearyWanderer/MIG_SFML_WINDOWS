@@ -4,22 +4,23 @@
 #include <string>
 #include <thread>
 #include <mutex>
+#include <stdlib.h> 
+#include <cmath>
 
 //Debug mem leak logs on Windows
 #ifdef _WIN32
-#define _CRTDBG_MAP_ALLOC  
-#include <stdlib.h>  
+#define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>  
 #elif __APPLE__
 
 #endif
 
 //SFML libs
-#include <SFML\Graphics.hpp>
-#include <SFML\Network.hpp>
-#include <TGUI\TGUI.hpp>
+#include <SFML/Graphics.hpp>
+#include <SFML/Network.hpp>
+#include <TGUI/TGUI.hpp>
 
-#include "..\Graphics\TexturesSingleton.h"
+#include "../Graphics/TexturesSingleton.h"
 
 #define WIDTH 1360
 #define HEIGHT 768

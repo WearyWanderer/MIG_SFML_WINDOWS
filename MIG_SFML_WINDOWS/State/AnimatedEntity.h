@@ -1,12 +1,8 @@
 #pragma once
 
-#ifdef _WIN32
 #include "../Base/stdafx.h"
 #include "Entity.h"
-#elif __APPLE__
-#include "..\Base\stdafx.h"
-#include "Entity.h"
-#endif
+
 
 class AnimatedEntity : public Entity
 {

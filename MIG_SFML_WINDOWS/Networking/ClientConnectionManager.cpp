@@ -162,7 +162,7 @@ std::shared_ptr<std::thread> ClientConnectionManager::BroadcastLobbySearch()
 	sf::IpAddress address;
 	address = sf::IpAddress::getLocalAddress();
 
-	strcpy_s(data, address.toString().c_str());
+	strcpy(data, address.toString().c_str());
 	
 	m_broadcastSocket.send(data, 100, sf::IpAddress::Broadcast, 8080);
 
@@ -344,22 +344,22 @@ bool ClientConnectionManager::LaunchServerApplication(std::string lobbyName, std
 	
 	//system(execPath.c_str());
 #elif __APPLE__
-	pid_t processId;
-
-	if ((processId = fork()) == 0) 
-	{
-		char app[] = "DETERMINED PATH NEEDED HERE ANDY";
-		char * const argv[] = { app, lobbyName, password };
-		if (execv(app, argv) < 0) 
-		{
-			perror("execv error");
-		}
-	}
-	else if (processId < 0) 
-	{
-		perror("fork error");
-		return false;
-	}
+//	pid_t processId;
+//
+//	if ((processId = fork()) == 0) 
+//	{
+//		char app[] = "DETERMINED PATH NEEDED HERE ANDY";
+//		char * const argv[] = { app, lobbyName, password };
+//		if (execv(app, argv) < 0) 
+//		{
+//			perror("execv error");
+//		}
+//	}
+//	else if (processId < 0) 
+//	{
+//		perror("fork error");
+//		return false;
+//	}
 #endif
 
 	return true;

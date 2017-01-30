@@ -1,7 +1,7 @@
 #pragma once
-#include "..\Base\BaseLoopClass.h"
-#include "..\Base\stdafx.h"
-#include "..\Base\Application.h"
+#include "../Base/BaseLoopClass.h"
+#include "../Base/stdafx.h"
+#include "../Base/Application.h"
 
 enum ActiveMenu
 {

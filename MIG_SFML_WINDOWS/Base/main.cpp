@@ -1,24 +1,26 @@
-#include "stdafx.h"
+
 #include "Application.h"
 
 #include <iostream>
 
 int main(int argc, char * argv[])
 {
+#ifdef _WIN32
 	char basePath[255] = "";
 	_fullpath(basePath, argv[0], sizeof(basePath));
 	std::string execPath = basePath;
 	execPath.erase(execPath.end() - 20, execPath.end());
 	std::cout << execPath << std::endl;
-	
-#ifdef _WIN32
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #elif __APPLE__
 
 #endif
 
 	Application* app = Application::instance();
+#ifdef _WIN32
 	app->SetAppPath(execPath);
+#endif
+    
 	app->Init();
 
 	sf::Clock clock;

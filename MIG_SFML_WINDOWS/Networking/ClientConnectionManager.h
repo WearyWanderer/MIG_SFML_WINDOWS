@@ -2,7 +2,7 @@
 
 #include "../Base/stdafx.h"
 #include "../Base/Application.h"
-#include <SFML\Network.hpp>
+#include <SFML/Network.hpp>
 
 #ifdef _WIN32
 #include <Windows.h>

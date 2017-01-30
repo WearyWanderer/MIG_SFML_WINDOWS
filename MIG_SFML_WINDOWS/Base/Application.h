@@ -4,22 +4,18 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 
+#include "stdafx.h"
+#include "../State/AnimatedEntity.h"
+#include "../Graphics/BackgroundRenderer.h"
+#include "../State/World.h"
+#include "../Base/InputManager.h"
+#include "../State/MainMenu.h"
+#include "../Networking/ClientConnectionManager.h"
+#include "../State/StateManager.h"
+
 #ifdef _WIN32
-	#include "stdafx.h"
-	#include "../State/AnimatedEntity.h"
-	#include "../Graphics/BackgroundRenderer.h"
-	#include "../State/World.h"
-	#include "../Base/InputManager.h"
-	#include "../State/MainMenu.h"
-	#include "../Networking/ClientConnectionManager.h"
-	#include "../State/StateManager.h"
-	#include <Windows.h>
+    #include <Windows.h>
 #elif __APPLE__
-	#include "..\Graphics\TextureLibrary.h"
-	#include "..\State\Entity.h"
-	#include "..\Graphics\BackgroundRenderer.h"
-	#include "..\State\World.h"
-	#include "..\Base\InputManager.h"
 #endif
 
 class MainMenu;

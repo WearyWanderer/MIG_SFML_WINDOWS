@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Base/stdafx.h"
-#include <SFML\Graphics\Rect.hpp>
+#include <SFML/Graphics/Rect.hpp>
 
 namespace gfx
 {

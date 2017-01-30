@@ -1,14 +1,9 @@
 #pragma once
 
-#ifdef _WIN32
 #include "../Graphics/TextureLibrary.h"
 #include "../Base/BaseLoopClass.h"
 #include "../Base/stdafx.h"
-#elif __APPLE__
-#include "..\Graphics\TextureLibrary.h"
-#include "..\Base\BaseLoopClass.h"
-#include "..\Base\stdafx.h"
-#endif
+
 
 #include "Player.h"
 

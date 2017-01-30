@@ -11,7 +11,7 @@ sf::Rect<int> AnimatedEntity::getCurrentFrameRect()
 	else
 	{
 		sf::Rect<int> newTextRect = m_spriteRect;
-		int numSpritesPerRow = floor(m_sprite.getTexture()->getSize().x / m_spriteRect.width);
+        int numSpritesPerRow = floor(m_sprite.getTexture()->getSize().x / m_spriteRect.width);
 		int currRowNum = m_currentFrame / numSpritesPerRow;
 		int currColNum = m_currentFrame % numSpritesPerRow;
 

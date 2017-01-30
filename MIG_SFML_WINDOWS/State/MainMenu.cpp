@@ -25,8 +25,8 @@ void MainMenu::Simulate(float deltaTime)
 	if (!lobbiesQueue.empty())
 	{
 		std::shared_ptr<tgui::ListBox> list = m_gui->get<tgui::ListBox>("Lobby Listings");
-		for each (auto i in lobbiesQueue)
-			list->addItem(i);
+        for(int i = 0; i < lobbiesQueue.size(); ++i)
+			list->addItem(lobbiesQueue.at(i));
 		
 		lobbiesQueue.clear();
 	}
@@ -193,7 +193,7 @@ void MainMenu::InitHosting()
 
 	if (Application::instance()->Client()->LaunchServerApplication(lobbyName, lobbyPass))
 	{
-		Sleep(100);
+		//Sleep(100);
 		Application::instance()->SetHost();
 		Application::instance()->Client()->AttemptLocalConnection();
 		Application::instance()->StateSystem()->SwitchScene(LOADING_SCREEN);

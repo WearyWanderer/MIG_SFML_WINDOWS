@@ -1,11 +1,9 @@
 #pragma once
 
 #include "stdafx.h"
-#include <SFML\Window.hpp>
-#ifdef _WIN32
+#include <SFML/Window.hpp>
 #include "Application.h"
-#elif __APPLE__
-#endif
+
 
 class InputManager
 {

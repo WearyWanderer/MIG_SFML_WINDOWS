@@ -1,12 +1,8 @@
 #pragma once
 
-#ifdef _WIN32
 #include "../Base/stdafx.h"
 #include "../State/Entity.h"
-#elif __APPLE__
-#include "..\Base\stdafx.h"
-#include "..\State\Entity.h"
-#endif
+
 
 //Define our bit flags
 const unsigned char fitToScreen = 0x01; 
