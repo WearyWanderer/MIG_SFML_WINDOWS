@@ -239,7 +239,7 @@ bool ClientConnectionManager::AttemptConnection(std::string lobbyKey, std::strin
 
 	if (status != sf::Socket::Done)
 	{
-		std::cerr << "Error in binding to tcp!" << std::endl;
+		std::cerr << "Error in connecting to tcp!" << std::endl;
 	}
 
 	std::string loginDetails = username + ";" + password + ";ep;";
@@ -286,7 +286,7 @@ bool ClientConnectionManager::AttemptConnection(std::string lobbyKey, std::strin
 
 	m_portNum = udpServerPort;
 
-	status = m_udpCommSocket.bind(sf::Socket::AnyPort, serverToContact.address);
+    status = m_udpCommSocket.bind(sf::Socket::AnyPort);
 
 	if (status != sf::Socket::Done)
 	{
@@ -297,7 +297,8 @@ bool ClientConnectionManager::AttemptConnection(std::string lobbyKey, std::strin
 	std::string portNum = "lp;" + std::to_string(m_udpCommSocket.getLocalPort()) + ";ep;";
 	const char* port = portNum.c_str();
 
-	m_udpCommSocket.send(port, portNum.length(), serverToContact.address, m_portNum);
+    m_udpCommSocket.setBlocking(true);
+	m_udpCommSocket.send(port, portNum.length(), m_tcpCommSocket.getRemoteAddress(), m_portNum);
 
 	Application::instance()->WorldSystem()->Init(playerID, xPos, HEIGHT);
 	Application::instance()->StateSystem()->SwitchScene(GAME_LOOP);
@@ -352,7 +353,7 @@ bool ClientConnectionManager::AttemptLocalConnection()
 
 	m_portNum = udpServerPort;
 
-    status = m_udpCommSocket.bind(sf::Socket::AnyPort, sf::IpAddress::getLocalAddress());
+    status = m_udpCommSocket.bind(sf::Socket::AnyPort);
 
 	if (status != sf::Socket::Done)
 	{

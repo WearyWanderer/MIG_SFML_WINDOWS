@@ -39,7 +39,7 @@ namespace SERVER
             string localIP = PortDefinitions.GetLocalIP();
 
             //Set up our TCP listener for new connection reuqests
-            IPEndPoint localEP = new IPEndPoint(IPAddress.Parse(localIP), PortDefinitions.TCP_CONNECT_PORT);
+            IPEndPoint localEP = new IPEndPoint(IPAddress.Parse(localIP), PortDefinitions.TCP_CONNECT_PORT + clientNum);
             Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             try
@@ -72,6 +72,7 @@ namespace SERVER
 
             //udp client creation
             IPEndPoint localUDPEP = new IPEndPoint(IPAddress.Parse(PortDefinitions.GetLocalIP()), 0); //we request a free port by passing 0 to constructor
+			IPEndPoint remoteUDPEP = localTcp.RemoteEndPoint as IPEndPoint;
             UdpClient udpClient = new UdpClient(localUDPEP);
 
             byte[] loginBuffer = new byte[512];
@@ -96,7 +97,7 @@ namespace SERVER
                 if (clientNum != -1)
                 {
                     //Create our tcp and udp tracking client object here, add it to our management dictionary or map or something
-                    AddClient(new Client(localTcp, udpClient, ((IPEndPoint)udpClient.Client.LocalEndPoint).Port, localUDPEP, clientNum, rand.Next(40, 1301), 768), clientNum);
+                    AddClient(new Client(localTcp, udpClient, ((IPEndPoint)udpClient.Client.LocalEndPoint).Port, remoteUDPEP, clientNum, rand.Next(40, 1301), 768), clientNum);
                     Client thisClient;
                     clients.TryGetValue(clientNum, out thisClient);
 
@@ -291,7 +292,7 @@ namespace SERVER
                         clients[clientInfo.uniquePlayerID].host = true;
                     }
                 }
-                catch(ArgumentOutOfRangeException e)
+                catch(Exception e)
                 {
                     Console.WriteLine("Couldn't parse a message!");
 
