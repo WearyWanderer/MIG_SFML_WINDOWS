@@ -7,7 +7,9 @@ enum ActiveMenu
 {
 	MAIN_ROOT,
 	LOBBY_SEARCH,
-	HOST_INFO
+	HOST_INFO,
+	LOGIN,
+	FAIL_LOGIN
 };
 
 class MainMenu : public BaseLoopClass
@@ -25,6 +27,7 @@ public:
 	inline ActiveMenu GetActiveMenu() { return m_active; }
 	inline sf::Font GetDefaultFont() { return m_defaultFont; }
 	void InitHosting();
+	void InitLogin();
 	void InitLobbySearch();
 	void RefreshLobbySearch();
 	void AddLobbyListing(std::string lobbyString, unsigned int lobbyNum);
@@ -38,7 +41,7 @@ public:
 private:
 	sf::Font m_defaultFont;
 	sf::Text lobbyCount;
-	
+	std::string selectedLobby = "";
 
 	tgui::Gui* m_gui;
 	ActiveMenu m_active = MAIN_ROOT;

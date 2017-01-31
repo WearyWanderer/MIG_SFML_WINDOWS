@@ -135,6 +135,57 @@ void MainMenu::SwitchMenu(ActiveMenu menu)
 			backButton->connect("pressed", &MainMenu::SwitchMenu, this, MAIN_ROOT);
 		}
 		break;
+	case LOGIN:
+		{
+			tgui::EditBox::Ptr editBoxUsername = std::make_shared<tgui::EditBox>();
+			editBoxUsername->setSize(WIDTH * 2 / 4, HEIGHT / 10);
+			editBoxUsername->setPosition((WIDTH / 2) - ((WIDTH * 2 / 4) / 2), HEIGHT / 4);
+			editBoxUsername->setDefaultText("Username");
+
+			tgui::EditBox::Ptr editBoxPassword = std::make_shared<tgui::EditBox>();
+			editBoxPassword->setSize(WIDTH * 2 / 4, HEIGHT / 10);
+			editBoxPassword->setPosition((WIDTH / 2) - ((WIDTH * 2 / 4) / 2), HEIGHT * 5 / 13);
+			editBoxPassword->setPasswordCharacter('*');
+			editBoxPassword->setDefaultText("Password (Set's pass if new user)");
+
+			tgui::Button::Ptr hostButton = std::make_shared<tgui::Button>();
+			hostButton->setPosition(((WIDTH / 2) - hostButton->getSize().x) - 5, HEIGHT / 1.8);
+			hostButton->setText("Login");
+
+			tgui::Button::Ptr backButton = std::make_shared<tgui::Button>();
+			backButton->setPosition((WIDTH / 2) + 5, HEIGHT / 1.8);
+			backButton->setText("Back");
+
+			m_gui->add(editBoxUsername, "Username");
+			m_gui->add(editBoxPassword, "Password");
+			m_gui->add(backButton, "Back Button");
+			m_gui->add(hostButton, "Login Button");
+
+			hostButton->connect("pressed", &MainMenu::InitLogin, this);
+			backButton->connect("pressed", &MainMenu::SwitchMenu, this, MAIN_ROOT);
+		break;
+		}
+	case FAIL_LOGIN:
+		{
+		tgui::Label::Ptr error = std::make_shared<tgui::Label>();
+		error->setText("Error: Incorrect password or username taken!");
+		error->setTextSize(50);
+		error->setSize(WIDTH / 1.6, HEIGHT / 5);
+		error->setPosition((WIDTH / 2) - (error->getSize().x / 2), HEIGHT / 2.7);
+		error->setFont(m_defaultFont);
+		error->setTextColor(sf::Color::Black);
+		tgui::Button::Ptr backButton = std::make_shared<tgui::Button>();
+		backButton->setSize((WIDTH / 5), (HEIGHT / 7));
+		backButton->setPosition((WIDTH / 2) - (backButton->getSize().x / 2), HEIGHT / 1.8);
+		backButton->setText("Back");
+
+
+		m_gui->add(backButton, "Back Button");
+		m_gui->add(error, "Error Msg");
+
+		backButton->connect("pressed", &MainMenu::SwitchMenu, this, MAIN_ROOT);
+		break;
+		}
 	default:
 		break;
 	}
@@ -168,10 +219,10 @@ void MainMenu::AttemptJoinLobby()
 {
 	std::shared_ptr<tgui::ListBox> list = m_gui->get<tgui::ListBox>("Lobby Listings");
 
-	if (!(list->getSelectedItemId() == "Title") && list->getSelectedItem() != "")
+	if (!(list->getSelectedItemId() == "Legend") && list->getSelectedItem() != "")
 	{
-		Application::instance()->StateSystem()->SwitchScene(LOADING_SCREEN);
-		Application::instance()->Client()->AttemptConnection(list->getSelectedItem());
+		selectedLobby = list->getSelectedItem();
+		SwitchMenu(LOGIN);
 	}
 }
 
@@ -197,5 +248,22 @@ void MainMenu::InitHosting()
 		Application::instance()->SetHost();
 		Application::instance()->Client()->AttemptLocalConnection();
 	}
+}
 
+void MainMenu::InitLogin()
+{
+	std::shared_ptr<tgui::EditBox> ln = m_gui->get<tgui::EditBox>("Username");
+	std::shared_ptr<tgui::EditBox> lp = m_gui->get<tgui::EditBox>("Password");
+	if (ln->getText() != "" && lp->getText() != "")
+	{
+		//do some login creation attempts here and if it returns true in attempt connection then we've either sucessfully made a character or logged in
+		if (Application::instance()->Client()->AttemptConnection(selectedLobby, ln->getText(), lp->getText()))
+		{
+
+		}
+		else
+		{
+			SwitchMenu(FAIL_LOGIN);
+		}
+	}
 }

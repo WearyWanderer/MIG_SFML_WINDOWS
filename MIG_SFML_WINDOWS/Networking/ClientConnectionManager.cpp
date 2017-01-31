@@ -227,7 +227,7 @@ void ClientConnectionManager::ProcessLobbyResponses()
 	}
 }
 
-bool ClientConnectionManager::AttemptConnection(std::string lobbyKey)
+bool ClientConnectionManager::AttemptConnection(std::string lobbyKey, std::string username, std::string password)
 {
 	ConnectionInfo serverToContact;
 	if (m_detectedLobbies.find(lobbyKey) != m_detectedLobbies.end())
@@ -241,6 +241,11 @@ bool ClientConnectionManager::AttemptConnection(std::string lobbyKey)
 	{
 		std::cerr << "Error in binding to tcp!" << std::endl;
 	}
+
+	std::string loginDetails = username + ";" + password + ";ep;";
+	const char* loginPacket = loginDetails.c_str();
+	m_tcpCommSocket.setBlocking(true);
+	m_tcpCommSocket.send(loginPacket, loginDetails.length()); //send our login request
 
 	char registerPacket[MAXBUFFSIZE];
 	size_t recieved;
@@ -259,6 +264,12 @@ bool ClientConnectionManager::AttemptConnection(std::string lobbyKey)
 
 	std::string delimiter(";");
 	std::list<std::string> tokens = split(initMsg, ";");
+
+	if (tokens.front() == "fail") //if the login failed
+	{
+		m_tcpCommSocket.disconnect();
+		return false;
+	}
 
 	//first one is uniqueplayerid
 	unsigned int playerID = std::stoul(tokens.front());
@@ -295,8 +306,10 @@ bool ClientConnectionManager::AttemptConnection(std::string lobbyKey)
 	return true;
 }
 
+//log in with admin username and admin password
 bool ClientConnectionManager::AttemptLocalConnection()
 {
+
     std::cout << m_tcpCommSocket.getLocalPort() << std::endl;
     sf::Socket::Status status = m_tcpCommSocket.connect(sf::IpAddress::getLocalAddress(), 8080);
 

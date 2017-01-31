@@ -47,7 +47,7 @@ public:
 	void RecieveUdpData();
 	void SendPlayerPosition(Player* playerCopy);
 	void ProcessLobbyResponses();
-	bool AttemptConnection(std::string lobbyKey);
+	bool AttemptConnection(std::string lobbyKey, std::string username, std::string password);
 	bool AttemptLocalConnection();
 
 	bool LaunchServerApplication(std::string lobbyName, std::string password);

@@ -6,12 +6,13 @@ using System.Net; // For IPAddress
 using System.Net.Sockets; // For TcpListener, TcpClient
 using System.Text;
 using System.Threading;
+using System.Data.SQLite;
 
 namespace SERVER
 {
     class ReactorListenerServer
     {
-        double syncrefreshRate = 0.5; //
+        double syncRefreshRate = 0.5; //
         //client tracking
         Dictionary<int, Client> clients = new Dictionary<int, Client>();
         int clientNum = 0;
@@ -69,19 +70,91 @@ namespace SERVER
             IPEndPoint localUDPEP = new IPEndPoint(IPAddress.Parse(PortDefinitions.GetLocalIP()), 0); //we request a free port by passing 0 to constructor
             UdpClient udpClient = new UdpClient(localUDPEP);
 
-            //Create our tcp and udp tracking client object here, add it to our management dictionary or map or something
-            AddClient(new Client(localTcp, udpClient, ((IPEndPoint)udpClient.Client.LocalEndPoint).Port, localUDPEP, clientNum, rand.Next(40, 1301), 768));
-            Client thisClient;
-            clients.TryGetValue(clientNum, out thisClient);
+            byte[] loginBuffer = new byte[512];
+            localTcp.Receive(loginBuffer);
+            string msg = System.Text.Encoding.UTF8.GetString(loginBuffer);
+            Queue<string> tokens = split(msg, ";");
 
-            thisClient.tcp.BeginReceive(thisClient.buffer, 0, PortDefinitions.MAXBUFFSIZE, 0, new AsyncCallback(TCPListen), thisClient);
-            thisClient.udp.BeginReceive(new AsyncCallback(UDPListen), thisClient);
+            if (tokens.Count == 3)
+            {
+                SQLiteConnection dbConnection = new SQLiteConnection("Data Source = logindb.db;Version=3;");
+                int clientNum = CreateOrRetrievePlayer(dbConnection, tokens.Dequeue(), tokens.Dequeue());
+                dbConnection.Close();
 
-            eventQueue.Enqueue(new Event(EventType.REQUEST_LOAD_PLAYERS, clientNum));
-            eventQueue.Enqueue(new Event(EventType.NEW_CONNECT, clientNum));
+                if (clientNum != -1)
+                {
+                    //Create our tcp and udp tracking client object here, add it to our management dictionary or map or something
+                    AddClient(new Client(localTcp, udpClient, ((IPEndPoint)udpClient.Client.LocalEndPoint).Port, localUDPEP, clientNum, rand.Next(40, 1301), 768), clientNum);
+                    Client thisClient;
+                    clients.TryGetValue(clientNum, out thisClient);
 
-            clientNum++;
-            Server.Instance.numPlayersActive++;
+                    thisClient.tcp.BeginReceive(thisClient.buffer, 0, PortDefinitions.MAXBUFFSIZE, 0, new AsyncCallback(TCPListen), thisClient);
+                    thisClient.udp.BeginReceive(new AsyncCallback(UDPListen), thisClient);
+
+                    eventQueue.Enqueue(new Event(EventType.REQUEST_LOAD_PLAYERS, clientNum));
+                    eventQueue.Enqueue(new Event(EventType.NEW_CONNECT, clientNum));
+
+                    clientNum++;
+                    Server.Instance.numPlayersActive++;
+                }
+                else
+                {
+                    string failMsg = "fail;ep;";
+                    EncryptString(ref failMsg);
+                    localTcp.Send(Encoding.ASCII.GetBytes(failMsg));
+                    localTcp.Disconnect(false);
+                }
+            }
+            else
+            {
+                localTcp.Send(Encoding.ASCII.GetBytes("randomrejection")); //we don't trust what we've recieved lets just send some grabled data back and burn out whatever is messaging our server for now!
+            }
+        }
+
+        public int CreateOrRetrievePlayer(SQLiteConnection db, string username, string password)
+        {
+            db.Open();
+            StringBuilder sqlQuery = new StringBuilder("select * from logins where PlayerName = '" + username + "'");
+            string sqlSearch = sqlQuery.ToString();//first search for the player already
+
+            SQLiteCommand com1 = new SQLiteCommand(sqlSearch, db);
+            SQLiteDataReader reader = com1.ExecuteReader();
+
+            if (reader.HasRows)
+            {
+                while (reader.Read())
+                {
+
+                    if (username == "admin" && password == "admin")
+                        return Convert.ToInt32(reader["PlayerID"]);
+                    else
+                    {
+                        string passwordEncrypted = Convert.ToString(reader["PlayerPass"]);
+                        EncryptString(ref passwordEncrypted);
+                        if (passwordEncrypted == password)
+                            return Convert.ToInt32(reader["PlayerID"]);
+                    }
+                }
+            }
+            else
+            {
+                //create new player
+                string passEncrypted = password;
+                EncryptString(ref passEncrypted);
+                sqlQuery = new StringBuilder("insert into logins values ('" + username + "',NULL,'" + passEncrypted + "')");
+                SQLiteCommand com2 = new SQLiteCommand(sqlQuery.ToString(), db);
+
+
+                com2.ExecuteNonQuery();
+
+                SQLiteDataReader reader2 = com2.ExecuteReader();
+                while (reader2.Read())
+                {
+                    return Convert.ToInt32(reader["PlayerID"]);
+                }
+            }
+
+            return -1;
         }
 
         public void StartDispatcherThread()
@@ -96,9 +169,9 @@ namespace SERVER
             }
         }
 
-        public void AddClient(Client clientToAdd)
+        public void AddClient(Client clientToAdd, int clientID)
         {
-            clients.Add(clientNum, clientToAdd);
+            clients.Add(clientID, clientToAdd);
 
             //send back a simply encrypted with bitwise XOR registration packet
             //
@@ -108,7 +181,7 @@ namespace SERVER
             //    password = Server.Instance.LobbyPassword;
             //    EncryptString(ref password);
             //}
-            string msgToSend = clientNum.ToString() + ";" + clientToAdd.playerCurrentPos.First + ";" + clientToAdd.udpPort + ((password == "") ? password + ";ep;" : ";ep;");
+            string msgToSend = clientID.ToString() + ";" + clientToAdd.playerCurrentPos.First + ";" + clientToAdd.udpPort + ((password == "") ? password + ";ep;" : ";ep;");
             EncryptString(ref msgToSend);
 
             byte[] msg = Encoding.ASCII.GetBytes(msgToSend);
@@ -128,16 +201,16 @@ namespace SERVER
                     tokens = split(msg, ";");
                     string eventToken = tokens.Dequeue();
 
-                    if(!clientInfo.passedPassword) //if the player hasn't yet passed the password we need to either ensure that there is a password to pass and that this is their first response, or kick them
-                    {
-                        if (Server.Instance.LobbyPassword != "")
-                        {
-                            if (eventToken == Server.Instance.LobbyPassword)
-                                clients[clientInfo.uniquePlayerID].passedPassword = true;
-                            else
-                                eventQueue.Enqueue(new Event(EventType.KICK_PASSWRONG, clientInfo.uniquePlayerID));
-                        }
-                    }
+                    //if(!clientInfo.passedPassword) //if the player hasn't yet passed the password we need to either ensure that there is a password to pass and that this is their first response, or kick them
+                    //{
+                    //    if (Server.Instance.LobbyPassword != "")
+                    //    {
+                    //        if (eventToken == Server.Instance.LobbyPassword)
+                    //            clients[clientInfo.uniquePlayerID].passedPassword = true;
+                    //        else
+                    //            eventQueue.Enqueue(new Event(EventType.KICK_PASSWRONG, clientInfo.uniquePlayerID));
+                    //    }
+                    //}
 
                     //lets first check we aren't disconnecting, if we are we neednt waste more time on this client
                     //TODO - could improve this by making a string to event enum parse and switch statement here but man I'm running low on time, foxus on marking criteria
@@ -212,6 +285,7 @@ namespace SERVER
             {
                 pos = str.IndexOf(delim, prev);
                 if (pos == str.Length) pos = str.Length;
+                if (pos == -1) return tokens;
                 string token = str.Substring(prev, pos - prev);
                 if (token.Length != 0) tokens.Enqueue(token);
                 prev = pos + delim.Length;

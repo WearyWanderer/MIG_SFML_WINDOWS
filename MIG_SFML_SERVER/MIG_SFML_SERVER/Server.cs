@@ -64,9 +64,9 @@ namespace SERVER
             dispatcherThread.Name = "DispatcherThread";
             dispatcherThread.Start();
 
-            Thread syncThread = new Thread(new ThreadStart(server.SyncMaintenance));
-            syncThread.Name = "SyncThread";
-            syncThread.Start();
+            //Thread syncThread = new Thread(new ThreadStart(server.SyncMaintenance));
+            //syncThread.Name = "SyncThread";
+            //syncThread.Start();
         }
     }
 }
