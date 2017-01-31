@@ -6,7 +6,11 @@ using System.Net; // For IPAddress
 using System.Net.Sockets; // For TcpListener, TcpClient
 using System.Text;
 using System.Threading;
+#if _WIN32
 using System.Data.SQLite;
+#elif __APPLE__
+using Mono.Data.Sqlite;
+#endif
 
 namespace SERVER
 {
@@ -77,9 +81,17 @@ namespace SERVER
 
             if (tokens.Count == 3)
             {
-                SQLiteConnection dbConnection = new SQLiteConnection("Data Source = logindb.db;Version=3;");
-                int clientNum = CreateOrRetrievePlayer(dbConnection, tokens.Dequeue(), tokens.Dequeue());
-                dbConnection.Close();
+				#if _WIN32
+				SQLiteConnection dbConnection = new SQLiteConnection("Data Source = logindb.db;Version=3;");
+				int clientNum = CreateOrRetrievePlayer(dbConnection, tokens.Dequeue(), tokens.Dequeue());
+				dbConnection.Close();
+				#elif __APPLE__
+				SqliteConnection dbConnection = new SqliteConnection("Data Source = logindb.db;Version=3;");
+				int clientNum = CreateOrRetrievePlayerMac(dbConnection, tokens.Dequeue(), tokens.Dequeue());
+				dbConnection.Close();
+				#endif
+
+                
 
                 if (clientNum != -1)
                 {
@@ -111,7 +123,8 @@ namespace SERVER
             }
         }
 
-        public int CreateOrRetrievePlayer(SQLiteConnection db, string username, string password)
+		#if _WIN32
+        public int CreateOrRetrievePlayerWindows(SQLiteConnection db, string username, string password)
         {
             db.Open();
             StringBuilder sqlQuery = new StringBuilder("select * from logins where PlayerName = '" + username + "'");
@@ -156,6 +169,55 @@ namespace SERVER
 
             return -1;
         }
+		#endif
+
+		#if __APPLE__
+		public int CreateOrRetrievePlayerMac(SqliteConnection db, string username, string password)
+		{
+			db.Open();
+			StringBuilder sqlQuery = new StringBuilder("select * from logins where PlayerName = '" + username + "'");
+			string sqlSearch = sqlQuery.ToString();//first search for the player already
+
+			SqliteCommand com1 = new SqliteCommand(sqlSearch, db);
+			SqliteDataReader reader = com1.ExecuteReader();
+
+			if (reader.HasRows)
+			{
+				while (reader.Read())
+				{
+
+					if (username == "admin" && password == "admin")
+						return Convert.ToInt32(reader["PlayerID"]);
+					else
+					{
+						string passwordEncrypted = Convert.ToString(reader["PlayerPass"]);
+						EncryptString(ref passwordEncrypted);
+						if (passwordEncrypted == password)
+							return Convert.ToInt32(reader["PlayerID"]);
+					}
+				}
+			}
+			else
+			{
+				//create new player
+				string passEncrypted = password;
+				EncryptString(ref passEncrypted);
+				sqlQuery = new StringBuilder("insert into logins values ('" + username + "',NULL,'" + passEncrypted + "')");
+				SqliteCommand com2 = new SqliteCommand(sqlQuery.ToString(), db);
+
+
+				com2.ExecuteNonQuery();
+
+				SqliteDataReader reader2 = com2.ExecuteReader();
+				while (reader2.Read())
+				{
+					return Convert.ToInt32(reader["PlayerID"]);
+				}
+			}
+
+			return -1;
+		}
+		#endif
 
         public void StartDispatcherThread()
         {
